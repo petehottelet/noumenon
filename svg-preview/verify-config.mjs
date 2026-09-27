@@ -33,7 +33,13 @@ for(const preset of PRESETS){
 }
 assert.equal(is3dPreset('warp'),true);assert.equal(is3dPreset('downpour'),false);assert.equal(lookOf('unknown'),'classic');
 const warp=engineConfig(readConfig('https://example.test/?preset=warp'));
-assert.equal(warp.volumetric,true);assert.equal(warp.forwardSpeed,2.5);assert.equal(warp.density,1.75);
+assert.equal(warp.volumetric,true);assert.equal(warp.forwardSpeed,2.5);assert.equal(warp.density,3.5);
+// 3D rain is twice the reference's stream density, whether chosen or entered from a 2D preset.
+assert.equal(presetValues('3d').density,2*upstream({version:'3d'}).density);
+assert.equal(engineConfig(readConfig('https://example.test/?preset=3d')).density,2);
+assert.equal(toggleThreeD(readConfig('https://example.test/?preset=runestones')).density,2);
+assert.equal(SCHEMA.find(field=>field.key==='density').max,4);
+assert.equal(readConfig('https://example.test/?preset=3d&density=1').density,1,'the slider still lowers it');
 assert.equal(readConfig('https://example.test/?preset=inferno&numColumns=60').numColumns,60);
 
 // Palettes: every choice is offered, single-hue palettes keep a look's stops,
