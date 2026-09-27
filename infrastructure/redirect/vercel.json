@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://github.com/petehottelet/noumenon",
+      "permanent": true
+    }
+  ]
+}

@@ -271,6 +271,11 @@ compiles its draw commands at runtime, and Google Fonts stylesheets and font
 files for the interface's Roboto and IBM Plex Mono; the rest of the site
 allows neither.
 
+The [noumenon.cc](https://noumenon.cc) domain forwards to this repository
+through a separate Vercel project, `noumenon-redirect`;
+[infrastructure/redirect](infrastructure/redirect/README.md) holds its
+configuration and deploy steps.
+
 ## Credits and licenses
 
 Noumenon is released under the [MIT License](LICENSE). The 192 original

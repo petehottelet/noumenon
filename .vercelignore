@@ -16,3 +16,4 @@ svg-preview/preview.gif
 face-sources/
 .ruff_cache/
 AGENTS.override.md
+infrastructure/
