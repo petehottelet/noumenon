@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.12"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run the offline test suite
+        run: python -m pytest tests -q
+
+  explorer-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify the persistent 3D world and camera
+        run: node svg-preview/verify-model.mjs
+      - name: Verify reference presets, settings and the control panel
+        run: |
+          node svg-preview/verify-settings.mjs
+          node svg-preview/verify-hud.mjs
+          node svg-preview/verify-config.mjs
+          node svg-preview/verify-timing.mjs
+          node svg-preview/verify-lifecycle.mjs
+      - name: Verify browser receipt provenance checks
+        run: node svg-preview/verify-provenance.mjs
+      - name: Verify browser helper process handling
+        run: node svg-preview/verify-browser-command.mjs
+      - name: Verify benchmark receipt overwrite protection
+        run: node svg-preview/verify-measure-guard.mjs
+      - name: Verify renderer measurements and browser identity
+        run: |
+          node svg-preview/verify-measurement.mjs
+          node svg-preview/verify-browser-metadata.mjs
+          node svg-preview/verify-raf-control.mjs
+
+  catalog-exports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Verify all native data against both canonical SVG catalogs
+        run: python export_native_glyphs.py --check
+
+  windows-scr:
+    needs: catalog-exports
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Noumenon.scr
+        shell: cmd
+        run: windows\build_windows.cmd
+      - name: Load and render the compiled Windows screensaver
+        shell: powershell
+        run: windows/smoke_windows.ps1 -Output "$env:RUNNER_TEMP/windows-smoke.png"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Noumenon-windows-scr
+          path: dist/Noumenon.scr
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noumenon-windows-verification
+          path: ${{ runner.temp }}/windows-smoke*
+          if-no-files-found: ignore
+
+  macos-saver:
+    needs: catalog-exports
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Noumenon.saver
+        run: bash macos/build_macos.sh
+      - name: Load and render the compiled universal bundle on Apple Silicon
+        run: bash macos/smoke_macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Noumenon-macos-saver
+          path: dist/Noumenon-macos-universal.zip
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noumenon-macos-arm64-verification
+          path: dist/macos-smoke/
+          if-no-files-found: ignore
+
+  macos-intel-smoke:
+    needs: macos-saver
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Noumenon-macos-saver
+          path: ${{ runner.temp }}/macos-package
+      - name: Load and render the same universal bundle on Intel
+        run: |
+          ditto -x -k "$RUNNER_TEMP/macos-package/Noumenon-macos-universal.zip" "$RUNNER_TEMP/macos-package"
+          test -x "$RUNNER_TEMP/macos-package/Noumenon.saver/Contents/MacOS/Noumenon"
+          codesign --verify --strict "$RUNNER_TEMP/macos-package/Noumenon.saver"
+          bash macos/smoke_macos.sh "$RUNNER_TEMP/macos-package/Noumenon.saver" "$RUNNER_TEMP/macos-intel-smoke"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noumenon-macos-x86_64-verification
+          path: ${{ runner.temp }}/macos-intel-smoke/
+          if-no-files-found: ignore
+
+  linux-x11:
+    needs: catalog-exports
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native build and virtual display dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libx11-dev libcairo2-dev librsvg2-2 xvfb xauth python3-pil
+      - name: Build the Linux executable
+        run: sh linux/build_linux.sh
+      - name: Verify compiled X11 rendering, embedding, and shutdown
+        run: >-
+          xvfb-run -a -s '-screen 0 1280x720x24'
+          python3 linux/smoke_linux.py
+          dist/noumenon-linux-x86_64
+          --out dist/linux-verification
+      - name: Package executable and verification receipt
+        run: |
+          package="$RUNNER_TEMP/linux-package"
+          mkdir -p "$package"
+          cp dist/noumenon-linux-x86_64 "$package/"
+          cp linux/README.md "$package/README.md"
+          cp svg-preview/reference/LICENSE "$package/REFERENCE-LICENSE.txt"
+          cp LICENSE "$package/NOUMENON-LICENSE.txt"
+          cp native-catalog.json "$package/native-catalog.json"
+          cp dist/linux-verification/verification.json "$package/verification.json"
+          tar -czf dist/Noumenon-linux-x86_64.tar.gz -C "$package" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Noumenon-linux-x86_64
+          path: dist/Noumenon-linux-x86_64.tar.gz
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noumenon-linux-verification
+          path: dist/linux-verification/
+          if-no-files-found: ignore
+
+  linux-compatibility:
+    needs: linux-x11
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Noumenon-linux-x86_64
+          path: ${{ runner.temp }}/linux-package
+      - name: Install runtime and virtual display dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-6 libcairo2 librsvg2-2 xvfb xauth python3-pil
+      - name: Verify the same compiled executable on Ubuntu 24.04
+        run: |
+          tar -xzf "$RUNNER_TEMP/linux-package/Noumenon-linux-x86_64.tar.gz" -C "$RUNNER_TEMP/linux-package"
+          xvfb-run -a -s '-screen 0 1280x720x24' python3 linux/smoke_linux.py "$RUNNER_TEMP/linux-package/noumenon-linux-x86_64" --out "$RUNNER_TEMP/linux-compatibility"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noumenon-linux-compatibility-verification
+          path: ${{ runner.temp }}/linux-compatibility/
+          if-no-files-found: ignore

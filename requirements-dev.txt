@@ -1,0 +1,7 @@
+# Offline test and export dependencies (Python 3.10 or later).
+# The committed inspection rasters use Pillow 11.1.0 polygon coverage.
+# Newer rasterizers change edge pixels; upgrade with an explicit artwork review.
+pillow==11.1.0
+numpy>=2.0,<3
+scipy>=1.14,<2
+pytest>=8.0

@@ -1,0 +1,14 @@
+# Catalog, export, renderer, and test hashes bind exact bytes across Windows
+# and Unix. Normalize text to LF in the repository and in every checkout.
+* text=auto eol=lf
+
+# Binary artwork, previews, textures, and fonts.
+*.png -text
+*.gif -text
+*.ttf -text
+
+# This measured stylesheet includes original CRLF bytes. Preserve its hash.
+/svg-preview/settings.css -text
+
+# cmd.exe scripts use CRLF in every checkout.
+*.cmd text eol=crlf

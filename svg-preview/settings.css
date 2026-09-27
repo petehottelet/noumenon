@@ -1,0 +1,223 @@
+/* Control panel after hottelet.com's floating phosphor HUD. */
+:root {
+  --phos-rgb: 55, 255, 110;
+  --phos-bright-rgb: 156, 255, 188;
+  --ink-rgb: 2, 10, 5;
+  --phos: #37ff6e;
+  --phos-bright: #9cffbc;
+  --phos-dim: #2fc85a;
+  --phos-faint: #28a74c;
+  --line: rgba(var(--phos-rgb), .26);
+  --bar: rgba(3, 12, 6, .84);
+  --panel: rgba(4, 18, 9, .5);
+  --control: #04160b;
+  --ink: #02140a;
+  --glow: 0 0 1px rgba(var(--phos-rgb), .55), 0 0 6px rgba(var(--phos-rgb), .38), 0 0 20px rgba(var(--phos-rgb), .13);
+}
+[hidden] { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- floating control bar ---------- */
+.hud {
+  position: fixed; z-index: 5;
+  left: 16px; right: 16px; bottom: 16px;
+  max-width: 1240px; margin-inline: auto;
+  background: radial-gradient(130% 95% at 50% -12%, rgba(var(--phos-rgb), .055), transparent 62%), var(--bar);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border: 1px solid var(--line); border-radius: 18px;
+  padding: 12px 14px 10px;
+  /* Below 1380px the centered panel reaches under the 70px corner hotspot;
+     pad its right side by the overlap so no control sits beneath it. */
+  padding-right: clamp(14px, calc(695px - 50vw), 59px);
+  max-height: calc(100dvh - 96px); overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: var(--phos-dim) transparent;
+  font: 700 12px/1.45 var(--ui); color: var(--phos); text-transform: uppercase;
+  text-shadow: var(--glow);
+  box-shadow: 0 0 38px rgba(var(--phos-rgb), .10), 0 10px 44px rgba(0, 0, 0, .55), inset 0 0 46px rgba(var(--phos-rgb), .045);
+  transition: opacity .25s ease, transform .25s ease;
+  animation: hud-pulse 3.6s ease-in-out infinite;
+}
+.hud.hidden { opacity: 0; transform: translateY(14px); pointer-events: none; }
+/* a closed panel runs no animations */
+.hud.hidden, .hud.hidden::before { animation: none; }
+@keyframes hud-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.11); } }
+/* chunky pixel resolve on open and dissolve on close */
+.hud.opening { animation: hud-resolve .32s steps(4) both; }
+.hud.closing { animation: hud-dissolve .28s steps(4) both; pointer-events: none; }
+@keyframes hud-resolve {
+  0% { filter: blur(16px) contrast(4) brightness(1.5); opacity: .2; }
+  100% { filter: blur(0) contrast(1) brightness(1); opacity: 1; }
+}
+@keyframes hud-dissolve {
+  0% { filter: blur(0) contrast(1) brightness(1); opacity: 1; }
+  100% { filter: blur(16px) contrast(4) brightness(1.5); opacity: 0; }
+}
+/* soft scanlines and one slow active scanline */
+.hud::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: repeating-linear-gradient(to bottom, rgba(var(--ink-rgb), 0) 0, rgba(var(--ink-rgb), .34) 1.7px, rgba(var(--ink-rgb), 0) 3.4px, rgba(var(--ink-rgb), 0) 4px);
+  filter: blur(.6px); opacity: .5;
+}
+/* The active scanline is the bottom edge of a panel-high overlay, so its sweep
+   stays inside the panel and never adds scroll height. */
+.hud::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(to top, transparent 0, rgba(var(--phos-bright-rgb), .045) 3.6px, rgba(var(--phos-bright-rgb), .09) 6.5px, rgba(var(--phos-bright-rgb), .045) 9.4px, transparent 13px);
+  animation: hud-scan 11.7s linear infinite;
+}
+@keyframes hud-scan {
+  0% { transform: translateY(-100%); opacity: 1; }
+  45% { transform: translateY(0); opacity: 1; }
+  50%, 100% { transform: translateY(0); opacity: 0; }
+}
+
+.hud button, .hud select, .hud .button {
+  font: 700 11px/1.2 var(--ui); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--phos); background: transparent;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 13px; min-height: 0; cursor: pointer; text-decoration: none; text-shadow: inherit;
+  box-shadow: 0 0 9px rgba(var(--phos-rgb), .13), inset 0 0 8px rgba(var(--phos-rgb), .06);
+}
+.hud select { background: var(--control); padding: 6px 8px; }
+.hud select option { color: var(--phos); background: var(--control); }
+.hud button:hover, .hud .button:hover, .hud select:hover { border-color: var(--phos); color: var(--phos); text-decoration: none; }
+.hud button.primary { background: var(--phos); color: var(--ink); border-color: var(--phos); box-shadow: 0 0 16px rgba(var(--phos-rgb), .5); text-shadow: none; }
+.hud button[aria-pressed=true]:not(.primary) { border-color: var(--phos); box-shadow: 0 0 0 1px var(--phos) inset; }
+.hud button:disabled, .hud select:disabled { opacity: .35; cursor: default; }
+.hud :focus-visible { outline: 1px solid var(--phos); outline-offset: 2px; text-decoration: none; }
+
+.transport { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-bottom: 10px; }
+.preset-picker { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.preset-picker label { font-size: 10px; letter-spacing: .1em; color: var(--phos-dim); }
+
+.deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 10px; }
+.group { min-width: 0; container-type: inline-size; background: var(--panel); border: 1px solid rgba(var(--phos-rgb), .16); border-radius: 12px; padding: 10px 12px 12px; }
+.group h2 { margin: 0 0 8px; font-size: 10px; letter-spacing: .32em; color: var(--phos-faint); }
+.row { display: grid; grid-template-columns: 92px 1fr 46px; align-items: center; gap: 9px; padding: 3px 0; }
+.row--select, .row--checkbox, .row--color { grid-template-columns: 92px 1fr; }
+.row label { font-size: 10px; line-height: 1.25; letter-spacing: .1em; color: var(--phos-dim); cursor: pointer; }
+.row output { font: 500 11px var(--mono); color: var(--phos-bright); text-align: right; font-variant-numeric: tabular-nums; text-transform: none; }
+.row select { width: 100%; }
+/* A narrow group puts a menu under its label, so names like Reference colors fit. */
+@container (max-width: 274px) { .row--select { grid-template-columns: 1fr; gap: 5px; } }
+.row.off { opacity: .3; }
+
+.hud input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; margin: 0; }
+.hud input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--phos-faint); border-radius: 1px; }
+.hud input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--phos); border: none; margin-top: -5px; box-shadow: 0 0 7px rgba(var(--phos-rgb), .75); }
+.hud input[type=range]::-moz-range-track { height: 2px; background: var(--phos-faint); border-radius: 1px; }
+.hud input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--phos); border: none; box-shadow: 0 0 7px rgba(var(--phos-rgb), .75); }
+.hud input[type=range]:disabled { opacity: .35; cursor: default; }
+.hud input[type=checkbox] {
+  -webkit-appearance: none; appearance: none; justify-self: start;
+  display: grid; place-content: center; width: 18px; height: 18px; margin: 0;
+  border: 1px solid var(--line); border-radius: 5px; background: var(--control); cursor: pointer;
+  box-shadow: 0 0 9px rgba(var(--phos-rgb), .13);
+}
+.hud input[type=checkbox]::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: var(--phos); box-shadow: 0 0 7px rgba(var(--phos-rgb), .75); transform: scale(0); transition: transform .12s ease; }
+.hud input[type=checkbox]:checked { border-color: var(--phos); }
+.hud input[type=checkbox]:checked::before { transform: scale(1); }
+.hud input[type=color] {
+  -webkit-appearance: none; appearance: none; justify-self: start;
+  width: 32px; height: 24px; padding: 0; border: 1px solid var(--line); border-radius: 6px;
+  background: none; cursor: pointer; overflow: hidden; box-shadow: 0 0 9px rgba(var(--phos-rgb), .13);
+}
+.hud input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.hud input[type=color]::-webkit-color-swatch { border: none; border-radius: 5px; }
+.hud input[type=color]::-moz-color-swatch { border: none; border-radius: 5px; }
+.hud input:disabled { cursor: default; }
+
+.statusline {
+  display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+  padding: 9px 2px 0;
+  font-size: 10px; letter-spacing: .14em; color: var(--phos-faint); font-variant-numeric: tabular-nums;
+}
+.statusline b { color: var(--phos-dim); font-weight: 700; }
+.statusline .status { margin-left: auto; color: var(--phos-bright); letter-spacing: .05em; text-transform: none; }
+.statusline .status:empty { display: none; }
+@media (hover: none) and (pointer: coarse) { .statusline .shortcut { display: none; } }
+
+/* ---------- corner: the gear fades in only for a hovering mouse ---------- */
+.corner {
+  position: fixed; right: 0; bottom: 0; z-index: 7;
+  width: 70px; height: 70px; margin: 0; padding: 0;
+  border: 0; background: transparent; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.corner .gear {
+  position: absolute; right: 16px; bottom: 16px;
+  width: 54px; height: 54px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bar); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--line); color: var(--phos);
+  box-shadow: 0 0 24px rgba(var(--phos-rgb), .15), inset 0 0 12px rgba(var(--phos-rgb), .06);
+  opacity: 0; pointer-events: none;
+  transition: opacity .35s ease, transform .3s ease, border-color .2s ease;
+}
+.corner .gear svg { width: 27px; height: 27px; display: block; filter: drop-shadow(0 0 4px rgba(var(--phos-rgb), .55)); }
+.corner.active .gear { transform: rotate(60deg); }
+@media (hover: hover) and (pointer: fine) {
+  .corner:hover .gear { opacity: 1; border-color: var(--phos); }
+}
+.corner:focus-visible { outline: none; }
+.corner:focus-visible .gear { opacity: 1; border-color: var(--phos); outline: 1px solid var(--phos); outline-offset: 2px; }
+/* Touch screens never show the gear; keyboard focus outlines the corner instead. */
+@media (hover: none) {
+  .corner .gear { display: none; }
+  .corner:focus-visible { outline: 1px solid var(--phos); outline-offset: -6px; }
+}
+
+/* ---------- tooltip that names the corner, then leaves ---------- */
+.tip {
+  position: fixed; right: 88px; bottom: 16px; z-index: 7;
+  display: flex; align-items: center; min-height: 54px; max-width: 260px;
+  background: var(--bar); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--phos-dim); border-radius: 12px;
+  padding: 10px 16px; pointer-events: none;
+  font: 700 11px/1.5 var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--phos);
+  text-shadow: var(--glow);
+  box-shadow: 0 0 22px rgba(var(--phos-rgb), .16), 0 8px 30px rgba(0, 0, 0, .55), inset 0 0 18px rgba(var(--phos-rgb), .05);
+}
+.tip:not([hidden]) { animation: tip-in .32s cubic-bezier(.16, 1, .3, 1) both; }
+.tip.leaving { animation: tip-out .42s ease both; }
+@keyframes tip-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@keyframes tip-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(10px); } }
+/* arrow pointing at the corner */
+.tip::after {
+  content: ""; position: absolute; right: -6.5px; top: 50%;
+  width: 12px; height: 12px; margin-top: -6px;
+  background: var(--control);
+  border-right: 1px solid var(--phos-dim); border-top: 1px solid var(--phos-dim);
+  transform: rotate(45deg);
+  box-shadow: 3px -3px 10px rgba(var(--phos-rgb), .10);
+}
+
+/* ---------- 3D movement pad ---------- */
+.movement {
+  position: fixed; left: 16px; bottom: 16px; z-index: 4;
+  display: none; gap: 6px; padding: 6px;
+  background: var(--bar); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 0 24px rgba(var(--phos-rgb), .12);
+}
+body.is-3d .movement { display: flex; }
+body.hud-open .movement { display: none; }
+.movement button {
+  display: grid; place-content: center; width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--phos);
+  cursor: pointer; touch-action: none; user-select: none;
+  box-shadow: 0 0 9px rgba(var(--phos-rgb), .13), inset 0 0 8px rgba(var(--phos-rgb), .06);
+}
+.movement button:hover { border-color: var(--phos); }
+.movement button:focus-visible { outline: 1px solid var(--phos); outline-offset: 2px; }
+.movement svg { display: block; width: 18px; height: 18px; fill: currentColor; shape-rendering: crispEdges; filter: drop-shadow(0 0 4px rgba(var(--phos-rgb), .55)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud, .hud.opening, .hud.closing { animation: none; transition: none; }
+  .hud::before { display: none; }
+  .corner .gear { transition: none; }
+  .tip:not([hidden]), .tip.leaving { animation: none; }
+}
+@media (max-width: 720px) {
+  .preset-picker { margin-left: 0; }
+}

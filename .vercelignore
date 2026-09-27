@@ -1,0 +1,15 @@
+.github/
+*.py
+README.md
+requirements-dev.txt
+glyph-motion.json
+native-catalog.json
+tests/
+linux/
+macos/
+windows/
+verification/
+dist/
+tmp/
+svg-preview/protocols/
+svg-preview/preview.gif

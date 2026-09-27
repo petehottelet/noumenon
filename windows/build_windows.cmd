@@ -1,0 +1,30 @@
+@echo off
+rem Build Noumenon.scr with the C# compiler bundled with Windows.
+rem No SDK, NuGet, or network access required. Run from any directory.
+
+setlocal
+set HERE=%~dp0
+set DIST=%HERE%..\dist
+if not "%~1"=="" set DIST=%~f1
+set CSC=%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe
+if not exist "%CSC%" set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
+if not exist "%CSC%" (
+    echo Could not find the .NET Framework C# compiler.
+    exit /b 1
+)
+
+if not exist "%DIST%" mkdir "%DIST%"
+
+"%CSC%" /nologo /target:winexe /optimize+ /warn:4 ^
+    /reference:System.dll /reference:System.Drawing.dll ^
+    /reference:System.Windows.Forms.dll ^
+    /resource:"%HERE%..\svg-preview\reference\LICENSE",Noumenon.ReferenceLicense ^
+    /out:"%DIST%\Noumenon.scr" ^
+    "%HERE%NoumenonSaver.cs" "%HERE%GlyphData.cs"
+
+if errorlevel 1 exit /b 1
+copy /y "%HERE%..\svg-preview\reference\LICENSE" "%DIST%\Noumenon-NOTICES.txt" >nul
+echo Built %DIST%\Noumenon.scr
+echo Install: right-click the .scr and choose "Install", or copy to a folder
+echo and select it under Settings ^> Personalization ^> Lock screen ^> Screensaver.
+endlocal
