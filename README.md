@@ -1,12 +1,9 @@
 # Noumenon
 
-Noumenon is an animated screensaver and web explorer that renders
-[Smythe](https://github.com/petehottelet/smythe)'s **192 original SVG glyphs**,
-mixed 90/10 with **56 classic reference glyphs**. The web explorer runs in any
-WebGL browser, with 13 presets on its Classic, Operator, and 3D looks, 13 body
-palettes, a second glyph face drawn from the
-[Yautja](https://github.com/petehottelet/yautja) HUD, and pixel-style controls.
-Native Windows, macOS, and Linux (X11) ports render the same SVG outlines and
+Noumenon is an animated screensaver and web explorer that is a demonstration project for 
+[Smythe](https://github.com/petehottelet/smythe)'s agent swarm orchestration. As a benchmark, generating runs of **192 and 256 original SVG glyphs**.
+The web explorer runs in any WebGL browser, with 13 presets on its Classic, Operator, and 3D looks, 13 body
+palettes, and pixel-style controls. Native Windows, macOS, and Linux (X11) ports render the same SVG outlines and
 are distributed as source only.
 
 <p align="center">
@@ -17,7 +14,7 @@ The animation shows the Classic explorer with the original-glyph mix at 100%.
 [Still image](svg-preview/preview.png) · [Capture record](svg-preview/preview-animation.json) ·
 [All 192 glyphs](catalog/contact-sheet-128.png).
 
-Noumenon is Smythe's parallel-processing showcase. Smythe's
+Noumenon is Smythe's agent swarm orchestration and parallel-processing showcase. Smythe's
 [Noumenon benchmark](https://github.com/petehottelet/smythe/blob/main/benchmarks/noumenon_benchmark.md)
 runs glyph generation as one 192-node fan-out graph, one node per glyph, and
 executes the nodes concurrently. The 192 SVG glyphs rendered here come from
