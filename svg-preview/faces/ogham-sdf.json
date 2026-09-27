@@ -1,0 +1,308 @@
+{
+  "version": "face-sdf-v2",
+  "face": "ogham",
+  "count": 26,
+  "grid": [
+    16,
+    2
+  ],
+  "cell_pixels": [
+    128,
+    128
+  ],
+  "texture_pixels": [
+    2048,
+    256
+  ],
+  "distance_range_pixels": 16,
+  "label": "Ogham",
+  "method": "Exact Euclidean distance transform of the glyph rasterized at 8x, averaged to each cell pixel",
+  "source": {
+    "kind": "font",
+    "repository": "https://github.com/google/fonts",
+    "commit": "23e54b51ddffbc7713c583748e3bd86f62b1fa4a",
+    "path": "ofl/notosansogham/NotoSansOgham-Regular.ttf",
+    "git_blob_sha1": "1067748cef2dbbd6b70d0ab64950942daae1f9c5",
+    "sha256": "6a70572d381f3a54fdaa3b373b865f4d97377c65434493b294b1dfacc7c4f58c",
+    "redistributed": false,
+    "license": "SIL Open Font License 1.1",
+    "license_url": "https://github.com/google/fonts/blob/23e54b51ddffbc7713c583748e3bd86f62b1fa4a/ofl/notosansogham/OFL.txt"
+  },
+  "order": "row-major in the listed character order",
+  "distance_range_semantics": "full range 16 atlas pixels; -8 outside to +8 inside; boundary 0.5",
+  "channels": "RGB with equal channels; median(r,g,b) is the signed distance",
+  "fit": {
+    "union_ink_pixels": 104,
+    "per_glyph": false,
+    "quarter_turns": 1
+  },
+  "atlas_sha256": "2ce9bf08349cba9da76fbd99cdf77703d6c37dfb02846e3d4bbf3257d878ff52",
+  "exporter_sha256": "12e07c9feb3126acd49f87b6a9f398affec7734640f461143cae8e06ee899ce8",
+  "validation": {
+    "minimum_iou_gate": 0.94,
+    "minimum_iou": 0.994324,
+    "comparison": "decoded field threshold versus cell pixels at least half covered at 8x"
+  },
+  "glyphs": [
+    {
+      "character": "ᚁ",
+      "codepoint": "U+1681",
+      "cell": [
+        0,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 389
+    },
+    {
+      "character": "ᚂ",
+      "codepoint": "U+1682",
+      "cell": [
+        1,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 706
+    },
+    {
+      "character": "ᚃ",
+      "codepoint": "U+1683",
+      "cell": [
+        2,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1021
+    },
+    {
+      "character": "ᚄ",
+      "codepoint": "U+1684",
+      "cell": [
+        3,
+        0
+      ],
+      "source_raster_iou_at128": 0.998544,
+      "ink_pixels_at128": 1373
+    },
+    {
+      "character": "ᚅ",
+      "codepoint": "U+1685",
+      "cell": [
+        4,
+        0
+      ],
+      "source_raster_iou_at128": 0.998225,
+      "ink_pixels_at128": 1689
+    },
+    {
+      "character": "ᚆ",
+      "codepoint": "U+1686",
+      "cell": [
+        5,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 389
+    },
+    {
+      "character": "ᚇ",
+      "codepoint": "U+1687",
+      "cell": [
+        6,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 706
+    },
+    {
+      "character": "ᚈ",
+      "codepoint": "U+1688",
+      "cell": [
+        7,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1021
+    },
+    {
+      "character": "ᚉ",
+      "codepoint": "U+1689",
+      "cell": [
+        8,
+        0
+      ],
+      "source_raster_iou_at128": 0.999272,
+      "ink_pixels_at128": 1373
+    },
+    {
+      "character": "ᚊ",
+      "codepoint": "U+168A",
+      "cell": [
+        9,
+        0
+      ],
+      "source_raster_iou_at128": 0.998816,
+      "ink_pixels_at128": 1689
+    },
+    {
+      "character": "ᚋ",
+      "codepoint": "U+168B",
+      "cell": [
+        10,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 666
+    },
+    {
+      "character": "ᚌ",
+      "codepoint": "U+168C",
+      "cell": [
+        11,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1257
+    },
+    {
+      "character": "ᚍ",
+      "codepoint": "U+168D",
+      "cell": [
+        12,
+        0
+      ],
+      "source_raster_iou_at128": 0.999455,
+      "ink_pixels_at128": 1834
+    },
+    {
+      "character": "ᚎ",
+      "codepoint": "U+168E",
+      "cell": [
+        13,
+        0
+      ],
+      "source_raster_iou_at128": 0.999587,
+      "ink_pixels_at128": 2421
+    },
+    {
+      "character": "ᚏ",
+      "codepoint": "U+168F",
+      "cell": [
+        14,
+        0
+      ],
+      "source_raster_iou_at128": 0.999337,
+      "ink_pixels_at128": 3015
+    },
+    {
+      "character": "ᚐ",
+      "codepoint": "U+1690",
+      "cell": [
+        15,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 226
+    },
+    {
+      "character": "ᚑ",
+      "codepoint": "U+1691",
+      "cell": [
+        0,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 374
+    },
+    {
+      "character": "ᚒ",
+      "codepoint": "U+1692",
+      "cell": [
+        1,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 520
+    },
+    {
+      "character": "ᚓ",
+      "codepoint": "U+1693",
+      "cell": [
+        2,
+        1
+      ],
+      "source_raster_iou_at128": 0.998487,
+      "ink_pixels_at128": 661
+    },
+    {
+      "character": "ᚔ",
+      "codepoint": "U+1694",
+      "cell": [
+        3,
+        1
+      ],
+      "source_raster_iou_at128": 0.99754,
+      "ink_pixels_at128": 813
+    },
+    {
+      "character": "ᚕ",
+      "codepoint": "U+1695",
+      "cell": [
+        4,
+        1
+      ],
+      "source_raster_iou_at128": 0.999104,
+      "ink_pixels_at128": 1115
+    },
+    {
+      "character": "ᚖ",
+      "codepoint": "U+1696",
+      "cell": [
+        5,
+        1
+      ],
+      "source_raster_iou_at128": 0.994324,
+      "ink_pixels_at128": 1051
+    },
+    {
+      "character": "ᚗ",
+      "codepoint": "U+1697",
+      "cell": [
+        6,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 902
+    },
+    {
+      "character": "ᚘ",
+      "codepoint": "U+1698",
+      "cell": [
+        7,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1199
+    },
+    {
+      "character": "ᚙ",
+      "codepoint": "U+1699",
+      "cell": [
+        8,
+        1
+      ],
+      "source_raster_iou_at128": 0.998716,
+      "ink_pixels_at128": 3113
+    },
+    {
+      "character": "ᚚ",
+      "codepoint": "U+169A",
+      "cell": [
+        9,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 517
+    }
+  ]
+}

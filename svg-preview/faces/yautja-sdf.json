@@ -1,17 +1,7 @@
 {
-  "version": "yautja-face-sdf-v1",
+  "version": "face-sdf-v2",
   "face": "yautja",
-  "method": "Exact Euclidean distance transform of lit bars rasterized at 8x, averaged to each cell pixel",
-  "source": {
-    "repository": "https://github.com/petehottelet/yautja",
-    "commit": "901f46c7438fba941775c584ffccd3d9a0f8ac08",
-    "path": "src/yautja/assets/glyphs.json",
-    "license": "MIT; code and original glyph artwork, Copyright (c) 2026 Pete Hottelet",
-    "vendored_path": "face-sources/yautja/glyphs.json",
-    "sha256": "a911ffd656f45855e17ee5311456a0902efa0466f0722bf6a14d96a10f214400"
-  },
   "count": 52,
-  "order": "row-major A-Z then a-z, the Yautja HUD rain's letter order",
   "grid": [
     13,
     4
@@ -25,593 +15,550 @@
     512
   ],
   "distance_range_pixels": 16,
+  "label": "Yautja",
+  "method": "Exact Euclidean distance transform of the glyph rasterized at 8x, averaged to each cell pixel",
+  "source": {
+    "kind": "polygons",
+    "repository": "https://github.com/petehottelet/yautja",
+    "commit": "901f46c7438fba941775c584ffccd3d9a0f8ac08",
+    "path": "src/yautja/assets/glyphs.json",
+    "license": "MIT; code and original glyph artwork, Copyright (c) 2026 Pete Hottelet",
+    "vendored_path": "face-sources/yautja/glyphs.json",
+    "sha256": "a911ffd656f45855e17ee5311456a0902efa0466f0722bf6a14d96a10f214400"
+  },
+  "order": "row-major in the listed character order",
   "distance_range_semantics": "full range 16 atlas pixels; -8 outside to +8 inside; boundary 0.5",
   "channels": "RGB with equal channels; median(r,g,b) is the signed distance",
   "fit": {
     "height_pixels": 110,
     "width_to_height": 0.85,
-    "centre": [
-      64.0,
-      64.0
-    ]
+    "per_glyph": true
   },
   "atlas_sha256": "98f3aab3a42db1b016205402ad28c15402533d48eccd8912fb1d771323c46b6e",
-  "exporter_sha256": "9fa22007cc13ce149d5d909f99155e679e05494c1e12022ae02ceff38707f000",
+  "exporter_sha256": "12e07c9feb3126acd49f87b6a9f398affec7734640f461143cae8e06ee899ce8",
   "validation": {
     "minimum_iou_gate": 0.94,
     "minimum_iou": 0.996383,
-    "comparison": "decoded field threshold versus cell pixels at least half covered by lit bars at 8x"
+    "comparison": "decoded field threshold versus cell pixels at least half covered at 8x"
   },
   "glyphs": [
     {
       "character": "A",
+      "codepoint": "U+0041",
       "cell": [
         0,
         0
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.999284,
       "ink_pixels_at128": 1396
     },
     {
       "character": "B",
+      "codepoint": "U+0042",
       "cell": [
         1,
         0
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 0.9988,
       "ink_pixels_at128": 832
     },
     {
       "character": "C",
+      "codepoint": "U+0043",
       "cell": [
         2,
         0
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.998558,
       "ink_pixels_at128": 1385
     },
     {
       "character": "D",
+      "codepoint": "U+0044",
       "cell": [
         3,
         0
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.998219,
       "ink_pixels_at128": 1121
     },
     {
       "character": "E",
+      "codepoint": "U+0045",
       "cell": [
         4,
         0
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1381
     },
     {
       "character": "F",
+      "codepoint": "U+0046",
       "cell": [
         5,
         0
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998805,
       "ink_pixels_at128": 1671
     },
     {
       "character": "G",
+      "codepoint": "U+0047",
       "cell": [
         6,
         0
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 0.998224,
       "ink_pixels_at128": 562
     },
     {
       "character": "H",
+      "codepoint": "U+0048",
       "cell": [
         7,
         0
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1120
     },
     {
       "character": "I",
+      "codepoint": "U+0049",
       "cell": [
         8,
         0
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1098
     },
     {
       "character": "J",
+      "codepoint": "U+004A",
       "cell": [
         9,
         0
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.999277,
       "ink_pixels_at128": 1383
     },
     {
       "character": "K",
+      "codepoint": "U+004B",
       "cell": [
         10,
         0
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 560
     },
     {
       "character": "L",
+      "codepoint": "U+004C",
       "cell": [
         11,
         0
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.999397,
       "ink_pixels_at128": 1657
     },
     {
       "character": "M",
+      "codepoint": "U+004D",
       "cell": [
         12,
         0
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 0.998805,
       "ink_pixels_at128": 836
     },
     {
       "character": "N",
+      "codepoint": "U+004E",
       "cell": [
         0,
         1
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.999102,
       "ink_pixels_at128": 1113
     },
     {
       "character": "O",
+      "codepoint": "U+004F",
       "cell": [
         1,
         1
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1107
     },
     {
       "character": "P",
+      "codepoint": "U+0050",
       "cell": [
         2,
         1
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.999277,
       "ink_pixels_at128": 1383
     },
     {
       "character": "Q",
+      "codepoint": "U+0051",
       "cell": [
         3,
         1
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998801,
       "ink_pixels_at128": 1666
     },
     {
       "character": "R",
+      "codepoint": "U+0052",
       "cell": [
         4,
         1
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.999286,
       "ink_pixels_at128": 1399
     },
     {
       "character": "S",
+      "codepoint": "U+0053",
       "cell": [
         5,
         1
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.999281,
       "ink_pixels_at128": 1389
     },
     {
       "character": "T",
+      "codepoint": "U+0054",
       "cell": [
         6,
         1
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.999109,
       "ink_pixels_at128": 1121
     },
     {
       "character": "U",
+      "codepoint": "U+0055",
       "cell": [
         7,
         1
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 0.99883,
       "ink_pixels_at128": 854
     },
     {
       "character": "V",
+      "codepoint": "U+0056",
       "cell": [
         8,
         1
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.999402,
       "ink_pixels_at128": 1672
     },
     {
       "character": "W",
+      "codepoint": "U+0057",
       "cell": [
         9,
         1
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.999089,
       "ink_pixels_at128": 1097
     },
     {
       "character": "X",
+      "codepoint": "U+0058",
       "cell": [
         10,
         1
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 550
     },
     {
       "character": "Y",
+      "codepoint": "U+0059",
       "cell": [
         11,
         1
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.999098,
       "ink_pixels_at128": 1108
     },
     {
       "character": "Z",
+      "codepoint": "U+005A",
       "cell": [
         12,
         1
       ],
-      "lit_bars": 7,
-      "unlit_bars": 0,
       "source_raster_iou_at128": 0.998976,
       "ink_pixels_at128": 1952
     },
     {
       "character": "a",
+      "codepoint": "U+0061",
       "cell": [
         0,
         2
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 0.997616,
       "ink_pixels_at128": 838
     },
     {
       "character": "b",
+      "codepoint": "U+0062",
       "cell": [
         1,
         2
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1096
     },
     {
       "character": "c",
+      "codepoint": "U+0063",
       "cell": [
         2,
         2
       ],
-      "lit_bars": 1,
-      "unlit_bars": 6,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 285
     },
     {
       "character": "d",
+      "codepoint": "U+0064",
       "cell": [
         3,
         2
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 822
     },
     {
       "character": "e",
+      "codepoint": "U+0065",
       "cell": [
         4,
         2
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.998243,
       "ink_pixels_at128": 1136
     },
     {
       "character": "f",
+      "codepoint": "U+0066",
       "cell": [
         5,
         2
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998801,
       "ink_pixels_at128": 1666
     },
     {
       "character": "g",
+      "codepoint": "U+0067",
       "cell": [
         6,
         2
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.999393,
       "ink_pixels_at128": 1647
     },
     {
       "character": "h",
+      "codepoint": "U+0068",
       "cell": [
         7,
         2
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.997831,
       "ink_pixels_at128": 1380
     },
     {
       "character": "i",
+      "codepoint": "U+0069",
       "cell": [
         8,
         2
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 843
     },
     {
       "character": "j",
+      "codepoint": "U+006A",
       "cell": [
         9,
         2
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.998219,
       "ink_pixels_at128": 1122
     },
     {
       "character": "k",
+      "codepoint": "U+006B",
       "cell": [
         10,
         2
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 0.998249,
       "ink_pixels_at128": 570
     },
     {
       "character": "l",
+      "codepoint": "U+006C",
       "cell": [
         11,
         2
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1105
     },
     {
       "character": "m",
+      "codepoint": "U+006D",
       "cell": [
         12,
         2
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998824,
       "ink_pixels_at128": 1699
     },
     {
       "character": "n",
+      "codepoint": "U+006E",
       "cell": [
         0,
         3
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.999108,
       "ink_pixels_at128": 1120
     },
     {
       "character": "o",
+      "codepoint": "U+006F",
       "cell": [
         1,
         3
       ],
-      "lit_bars": 4,
-      "unlit_bars": 3,
       "source_raster_iou_at128": 0.996383,
       "ink_pixels_at128": 1103
     },
     {
       "character": "p",
+      "codepoint": "U+0070",
       "cell": [
         2,
         3
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998193,
       "ink_pixels_at128": 1658
     },
     {
       "character": "q",
+      "codepoint": "U+0071",
       "cell": [
         3,
         3
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.998596,
       "ink_pixels_at128": 1422
     },
     {
       "character": "r",
+      "codepoint": "U+0072",
       "cell": [
         4,
         3
       ],
-      "lit_bars": 3,
-      "unlit_bars": 4,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 803
     },
     {
       "character": "s",
+      "codepoint": "U+0073",
       "cell": [
         5,
         3
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998211,
       "ink_pixels_at128": 1674
     },
     {
       "character": "t",
+      "codepoint": "U+0074",
       "cell": [
         6,
         3
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.99782,
       "ink_pixels_at128": 1374
     },
     {
       "character": "u",
+      "codepoint": "U+0075",
       "cell": [
         7,
         3
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 1384
     },
     {
       "character": "v",
+      "codepoint": "U+0076",
       "cell": [
         8,
         3
       ],
-      "lit_bars": 5,
-      "unlit_bars": 2,
       "source_raster_iou_at128": 0.997101,
       "ink_pixels_at128": 1377
     },
     {
       "character": "w",
+      "codepoint": "U+0077",
       "cell": [
         9,
         3
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 1.0,
       "ink_pixels_at128": 535
     },
     {
       "character": "x",
+      "codepoint": "U+0078",
       "cell": [
         10,
         3
       ],
-      "lit_bars": 2,
-      "unlit_bars": 5,
       "source_raster_iou_at128": 0.998185,
       "ink_pixels_at128": 550
     },
     {
       "character": "y",
+      "codepoint": "U+0079",
       "cell": [
         11,
         3
       ],
-      "lit_bars": 6,
-      "unlit_bars": 1,
       "source_raster_iou_at128": 0.998211,
       "ink_pixels_at128": 1674
     },
     {
       "character": "z",
+      "codepoint": "U+007A",
       "cell": [
         12,
         3
       ],
-      "lit_bars": 7,
-      "unlit_bars": 0,
       "source_raster_iou_at128": 0.998486,
       "ink_pixels_at128": 1979
     }

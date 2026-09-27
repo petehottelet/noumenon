@@ -52,9 +52,21 @@ for(let index=1;index<fire.length;index++)assert.ok(fire[index].color.values[2]>
 const ghost=engineConfig(readConfig('https://example.test/?palette=monochrome'));
 assert.ok(ghost.palette.every(entry=>entry.color.values[1]===0));
 
-// Glyph faces: the Smythe face mixes with the reference glyphs; Yautja fills
-// every cell from its own 52-glyph atlas and ignores the mix.
-assert.deepEqual(GLYPH_FACES.map(face=>face.value),['smythe','yautja']);
+// Glyph faces: the Smythe face mixes with the reference glyphs; every other
+// face fills each cell from its own atlas and ignores the mix.
+assert.deepEqual(GLYPH_FACES.map(face=>face.value),['smythe','cyber','yautja','ogham','runic','tifinagh','braille','share-tech-mono','press-start-2p']);
+assert.deepEqual(SCHEMA.find(field=>field.key==='glyphFace').options.map(option=>option.value),GLYPH_FACES.map(face=>face.value));
+for(const face of GLYPH_FACES){
+  const config=engineConfig(readConfig(`https://example.test/?glyphFace=${face.value}&originalMix=25`));
+  assert.equal(config.generatedCount,face.count,face.value);assert.deepEqual(config.generatedGrid,face.grid,face.value);
+  assert.equal(config.glyphMix,face.value==='smythe'?.25:1,face.value);
+  assert.ok(face.count<=face.grid[0]*face.grid[1]&&face.count>face.grid[0]*(face.grid[1]-1),`${face.value} grid holds exactly its rows`);
+  assert.ok(config.generatedAtlasURL.endsWith(face.atlas.slice(1)),face.value);
+}
+// Cyber is the same 192 originals as the Smythe face, drawn without the reference mix.
+const cyber=engineConfig(readConfig('https://example.test/?glyphFace=cyber'));
+assert.ok(cyber.generatedAtlasURL.endsWith('/generated-sdf.png'));assert.equal(cyber.glyphMix,1);assert.equal(cyber.generatedCount,192);
+for(const [id,face] of [['runestones','runic'],['arcade','press-start-2p'],['mainframe','share-tech-mono']])assert.equal(readConfig(`https://example.test/?preset=${id}`).glyphFace,face,id);
 const yautja=engineConfig(readConfig('https://example.test/?glyphFace=yautja&originalMix=10'));
 assert.equal(yautja.glyphMix,1);assert.equal(yautja.generatedCount,52);assert.deepEqual(yautja.generatedGrid,[13,4]);
 assert.ok(yautja.generatedAtlasURL.endsWith('/faces/yautja-sdf.png'));

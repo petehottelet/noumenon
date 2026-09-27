@@ -3,7 +3,9 @@ import {join} from 'node:path';
 export function rendererSources(directory){
   const engine=JSON.parse(readFileSync(join(directory,'engine/manifest.json'),'utf8'));
   return [...new Set(['rain.js','config.mjs','timing.mjs','glyphs.js','base-glyphs.js','index.html','style.css','settings.mjs','settings.css','hud.mjs',
-    'generated-sdf.png','generated-sdf.json','faces/yautja-sdf.png','faces/yautja-sdf.json','reference/matrixcode_msdf.png',
+    'generated-sdf.png','generated-sdf.json',
+    'faces/yautja-sdf.png','faces/yautja-sdf.json','faces/ogham-sdf.png','faces/ogham-sdf.json','faces/runic-sdf.png','faces/runic-sdf.json','faces/tifinagh-sdf.png','faces/tifinagh-sdf.json','faces/braille-sdf.png','faces/braille-sdf.json','faces/share-tech-mono-sdf.png','faces/share-tech-mono-sdf.json','faces/press-start-2p-sdf.png','faces/press-start-2p-sdf.json',
+    'reference/matrixcode_msdf.png',
     'wordmark.svg','fonts/provenance.json',
     'lib/regl.min.js','lib/gl-matrix.js','engine/upstream-config.mjs','engine/manifest.json',
     ...engine.files.map(file=>'engine/'+file.path)])].sort();
