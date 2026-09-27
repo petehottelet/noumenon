@@ -62,17 +62,19 @@ export function mountHud({panel,corner,tip,dismissTargets=[],reducedMotion=false
 }
 
 // Outline of a folder whose tab sits flush with the body's left edge and slopes
-// down to the body's top edge at 45 degrees. Each corner is rounded; the slope's
+// down to the body's top edge at 60 degrees. Each corner is rounded; the slope's
 // two ends take small joins. Coordinates are CSS pixels with the origin at the
 // top left; inset moves every edge inward so a stroke of twice that width stays
 // inside the clipped panel.
-export function folderPath(width,height,{tabWidth,tabHeight,radius=18,tabRadius=14,join=8},inset=0){
-  const values=[width,height,tabWidth,tabHeight,radius,tabRadius,join,inset];
+export function folderPath(width,height,{tabWidth,tabHeight,radius=18,tabRadius=14,join=8,slope=60},inset=0){
+  const values=[width,height,tabWidth,tabHeight,radius,tabRadius,join,slope,inset];
   if(!values.every(Number.isFinite)||values.some(value=>value<0))throw new RangeError('Folder dimensions must be finite and non-negative');
-  const W=width,H=height,T=tabHeight,b=tabWidth;
-  if(b<tabRadius+join||T<tabRadius+join||b+T>W-radius-join||H-T<2*radius)throw new RangeError('The tab does not fit on the folder body');
+  if(slope<=0||slope>=90)throw new RangeError('The tab slope must be between 0 and 90 degrees');
+  // The slope's horizontal run: steeper angles make a shorter slope.
+  const W=width,H=height,T=tabHeight,b=tabWidth,run=T/Math.tan(slope*Math.PI/180);
+  if(b<tabRadius+join||T<tabRadius+join||b+run>W-radius-join||H-T<2*radius)throw new RangeError('The tab does not fit on the folder body');
   // Clockwise corners and their radii: the tab's top left, both ends of the slope, then the body.
-  const corners=[[0,0,tabRadius],[b,0,join],[b+T,T,join],[W,T,radius],[W,H,radius],[0,H,radius]];
+  const corners=[[0,0,tabRadius],[b,0,join],[b+run,T,join],[W,T,radius],[W,H,radius],[0,H,radius]];
   // Move each edge inward along its normal, then intersect neighbouring edges.
   const edges=corners.map(([x,y],k)=>{
     const [nextX,nextY]=corners[(k+1)%corners.length],length=Math.hypot(nextX-x,nextY-y),dx=(nextX-x)/length,dy=(nextY-y)/length;

@@ -35,15 +35,18 @@
 }
 .hud-tab {
   position: relative; z-index: 2; flex: none; align-self: flex-start;
-  /* Flush with the panel's left edge; the outline slopes away past its right edge. */
-  display: flex; align-items: center; height: 52px; margin-left: 0; padding: 2px 8px 0 24px;
+  /* Flush with the panel's left edge; the outline slopes away past its right edge.
+     The wordmark keeps about 28.5px of clear space on each side: 28.8px of padding
+     on the left, and on the right 12.7px of padding plus the slope's 15.6px lean
+     at the wordmark's mid-height. */
+  display: flex; align-items: center; height: 52px; margin-left: 0; padding: 2px 12.7px 0 28.8px;
   text-decoration: none;
 }
 /* The wordmark is a mask filled with the interface color, so it follows the palette. */
 .hud-tab { filter: drop-shadow(0 0 6px rgba(var(--phos-rgb), .35)); }
 .hud-tab:hover { filter: drop-shadow(0 0 9px rgba(var(--phos-rgb), .6)); }
 .hud-wordmark {
-  display: block; width: 172px; aspect-ratio: 5165 / 802; background: var(--phos);
+  display: block; width: 163.4px; aspect-ratio: 5165 / 802; background: var(--phos);
   -webkit-mask: url(wordmark.svg) center / contain no-repeat; mask: url(wordmark.svg) center / contain no-repeat;
 }
 .hud-tab:focus-visible { outline-offset: -8px; }
