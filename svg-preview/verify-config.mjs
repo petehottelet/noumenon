@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import upstream from './engine/upstream-config.mjs';
-import {MATRIX_GREEN,LOOK_IDS,PRESET_IDS,PRESETS,PALETTES,GLYPH_FACES,SCHEMA,THEME_PROPERTIES,presetValues,readConfig,engineConfig,recolor,interfaceTheme,is3dPreset,lookOf} from './config.mjs';
+import {MATRIX_GREEN,LOOK_IDS,PRESET_IDS,PRESETS,PALETTES,GLYPH_FACES,SCHEMA,THEME_PROPERTIES,CARRIED_ACROSS_LOOKS,presetValues,readConfig,engineConfig,recolor,interfaceTheme,toggleThreeD,is3dPreset,lookOf} from './config.mjs';
 import {normalizeSettings} from './settings.mjs';
 for(const id of LOOK_IDS){
   const base=upstream({version:id}),values=readConfig(`https://example.test/?preset=${id}&palette=reference`),result=engineConfig(values);
@@ -96,4 +96,18 @@ const fireTheme=interfaceTheme({palette:'fire',preset:'classic'});
 assert.ok(hueOf(channels(fireTheme['--phos']))<25);assert.ok(hueOf(channels(fireTheme['--phos-bright']))>35&&hueOf(channels(fireTheme['--phos-bright']))<60);
 const crimsonTheme=interfaceTheme({palette:'crimson',preset:'classic'});
 assert.ok(hueOf(channels(crimsonTheme['--phos']))>340||hueOf(channels(crimsonTheme['--phos']))<10);
-console.log('Configuration: reference looks, mix endpoints, aliases, URL validation, paused automatic travel, presets, palettes, glyph faces and interface themes passed.');
+// Entering 3D from a colored preset keeps its glyphs and colors (Runestones
+// used to turn Matrix green), and leaving 3D keeps them too.
+const runestones=readConfig('https://example.test/?preset=runestones');
+const entered=toggleThreeD(runestones);
+assert.equal(entered.preset,'3d');assert.equal(engineConfig(entered).volumetric,true);
+for(const key of CARRIED_ACROSS_LOOKS)assert.equal(entered[key],runestones[key],`3D keeps ${key}`);
+assert.equal(entered.palette,'amber');assert.equal(entered.glyphFace,'runic');
+assert.equal(entered.numColumns,presetValues('3d').numColumns,'the 3D look keeps its own geometry');
+assert.ok(interfaceTheme(entered)['--phos'].startsWith('rgb(255'),'the interface stays amber');
+const left=toggleThreeD(entered);
+assert.equal(left.preset,'classic');assert.equal(engineConfig(left).volumetric,false);
+for(const key of CARRIED_ACROSS_LOOKS)assert.equal(left[key],runestones[key],`leaving 3D keeps ${key}`);
+const custom=toggleThreeD(readConfig('https://example.test/?palette=reference&cursorColor=%23123456&backgroundColor=%23010203&originalMix=40'));
+assert.deepEqual([custom.palette,custom.cursorColor,custom.backgroundColor,custom.originalMix],['reference','#123456','#010203',40]);
+console.log('Configuration: reference looks, mix endpoints, aliases, URL validation, paused automatic travel, presets, palettes, glyph faces, interface themes and 3D toggling passed.');

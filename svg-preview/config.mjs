@@ -149,6 +149,15 @@ export function presetValues(id='classic'){
 }
 export const PRESETS=PRESET_DEFINITIONS.map(({id,label})=>({id,label,values:presetValues(id)}));
 
+// Entering or leaving 3D swaps the look but keeps what the rain is made of and
+// how it is colored, so a preset's glyphs and palette carry across.
+export const CARRIED_ACROSS_LOOKS=['glyphFace','originalMix','palette','backgroundColor','cursorColor'];
+export function toggleThreeD(values){
+  const next=presetValues(is3dPreset(values.preset)?'classic':'3d');
+  for(const key of CARRIED_ACROSS_LOOKS)if(values[key]!==undefined)next[key]=values[key];
+  return normalizeSettings(SCHEMA,next);
+}
+
 export function readConfig(url){
   const address=new URL(url),q=address.searchParams;
   const alias={'1999':'operator','2003':'classic',throwback:'operator'};

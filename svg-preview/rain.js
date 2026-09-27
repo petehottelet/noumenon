@@ -1,6 +1,6 @@
 import {mountSettings,serializeSettingsUrl} from './settings.mjs';
 import {mountHud} from './hud.mjs';
-import {SCHEMA,PRESETS,presetValues,readConfig,engineConfig,is3dPreset,presetLabel,faceOf,interfaceTheme,THEME_PROPERTIES} from './config.mjs';
+import {SCHEMA,PRESETS,readConfig,engineConfig,is3dPreset,presetLabel,faceOf,interfaceTheme,THEME_PROPERTIES,toggleThreeD} from './config.mjs';
 import makeRain from './engine/rainPass.js';
 import makeBloom from './engine/bloomPass.js';
 import makePalette from './engine/palettePass.js';
@@ -151,7 +151,7 @@ document.getElementById('pause').addEventListener('click',()=>pause());
 document.getElementById('reset').addEventListener('click',reset);
 document.getElementById('fullscreen').addEventListener('click',fullscreen);
 document.getElementById('mode').addEventListener('click',()=>{
-  const next={...presetValues(is3dPreset(values.preset)?'classic':'3d'),originalMix:values.originalMix,glyphFace:values.glyphFace};
+  const next=toggleThreeD(values);
   location.assign(serializeSettingsUrl(location.href,next,SCHEMA,{presetId:next.preset}));
 });
 for(const button of document.querySelectorAll('[data-direction]')){
