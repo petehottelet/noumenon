@@ -3,9 +3,11 @@
 Noumenon is an animated screensaver and web explorer that renders
 [Smythe](https://github.com/petehottelet/smythe)'s **192 original SVG glyphs**,
 mixed 90/10 with **56 classic reference glyphs**. The web explorer runs in any
-WebGL browser, with Classic, 3D, and Operator presets and pixel-style
-controls. Native Windows, macOS, and Linux (X11) ports render the same SVG
-outlines and are distributed as source only.
+WebGL browser, with 13 presets on its Classic, Operator, and 3D looks, 13 body
+palettes, a second glyph face drawn from the
+[Yautja](https://github.com/petehottelet/yautja) HUD, and pixel-style controls.
+Native Windows, macOS, and Linux (X11) ports render the same SVG outlines and
+are distributed as source only.
 
 <p align="center">
   <img src="svg-preview/preview.gif" alt="Animated Noumenon explorer showing only the 192 original Smythe glyphs" width="900">
@@ -73,18 +75,22 @@ python -m http.server 8000 --bind 127.0.0.1
 Then open <http://localhost:8000/svg-preview/>. The explorer needs a
 WebGL-capable browser and no API key or build step.
 
-**Explorer.** Classic uses the reference's fixed 2D grid. The 3D preset adds
-arrow-key travel; Operator is a separate visual preset. Settings open in a
-floating phosphor control panel along the bottom of the window: click or tap
-the bottom-right corner, or press S. A tooltip points out the corner for a
-few seconds after the page loads, and the gear fades in only while a mouse
-hovers there; touch screens never show it. Escape or a click on the rain
+**Explorer.** Classic uses the reference's fixed 2D grid. The 3D look adds
+arrow-key travel, in the 3D and Warp speed presets; Operator is a separate
+visual look. Presets such as
+Downpour, Inferno, Synthwave, Northern lights, Hunter, and Warp speed build on
+those three looks. Settings open in a floating phosphor control panel along
+the bottom of the window: click or tap the bottom-right corner, or press S.
+For a few seconds after the page loads, a tooltip points out the corner and
+the gear shows beside it; the two fade out together. Afterwards the gear
+fades in only while a mouse hovers the corner. Escape or a click on the rain
 closes the panel. Changes apply live, and the URL retains the configuration.
 Space pauses playback, R resets the viewpoint, and F toggles fullscreen. The
-panel sets Roboto and IBM Plex Mono in green `#37FF6E` and bright `#9CFFBC`
-with a soft glow and scanlines, beside an outlined Trajan Bold SMYTHE
-wordmark. The rain retains its 137° Matrix green grade and mint `#A2FFD8`
-highlights; Reference body colors remain selectable. The
+panel is a folder whose raised tab carries the outlined Trajan Bold SMYTHE
+wordmark; it sets Roboto and IBM Plex Mono in green `#37FF6E` and bright
+`#9CFFBC` with a soft glow and scanlines, and its menus open in the same
+style. The rain's default grade is 137° Matrix green with mint `#A2FFD8`
+highlights; Reference colors and 11 other palettes remain selectable. The
 [explorer guide](svg-preview/README.md) covers settings, the renderer, and its
 checks.
 
@@ -204,6 +210,7 @@ python export_glyphs.py
 python export_native_glyphs.py
 python export_native_glyphs.py --check
 python export_generated_sdf.py --check
+python export_face_sdf.py --check
 python import_reference_glyphs.py --check
 ```
 
@@ -215,6 +222,8 @@ python import_reference_glyphs.py --check
   preserves the licensed reference outlines; it does not run a generator.
 - `export_generated_sdf.py --check` binds the explorer's MSDF atlas to every
   source SVG. Rebuilding the atlas needs MSDFgen 1.13 (`--msdfgen PATH`).
+- `export_face_sdf.py` builds the Yautja face's distance-field atlas from its
+  vendored polygon source; `--check` rebuilds it in memory and compares.
 - `import_reference_glyphs.py --check` reproduces the reference artwork files
   offline from the pinned source atlas.
 
@@ -262,8 +271,9 @@ allows neither.
 ## Credits and licenses
 
 Noumenon is released under the [MIT License](LICENSE). The 192 original
-glyphs come from [Smythe](https://github.com/petehottelet/smythe), under the
-same license and copyright.
+glyphs come from [Smythe](https://github.com/petehottelet/smythe), and the
+Yautja face's 52 glyphs from [Yautja](https://github.com/petehottelet/yautja),
+both under the same license and copyright.
 
 The web explorer adapts the renderer and classic artwork from
 [m8e/matrix-rain](https://github.com/m8e/matrix-rain), a fork of

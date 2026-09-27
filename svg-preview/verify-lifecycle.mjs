@@ -34,6 +34,7 @@ async function preview(initialPaused=false,{duringFirstBuild=null}={}){
     clearTimeout:id=>timers.delete(id),
     mountSettings:options=>{settings=options;return {};},mountHud:()=>({isOpen:()=>false,open(){},close(){},toggle(){}}),serializeSettingsUrl:()=>'',
     SCHEMA:[],PRESETS:[],presetValues:()=>({...config}),readConfig:()=>({...config}),engineConfig:value=>value,
+    is3dPreset:id=>id==='3d',presetLabel:()=>'Classic',faceOf:()=>({summary:'192 + 56'}),
     makeRain(){},makeBloom(){},makePalette(){},
     makeSimulationScope:()=>callback=>callback(),
     // Each scene build records whether the previous one had finished and what the

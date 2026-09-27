@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import upstream from './engine/upstream-config.mjs';
-import {MATRIX_GREEN,PRESET_IDS,presetValues,readConfig,engineConfig} from './config.mjs';
-for(const id of PRESET_IDS){
+import {MATRIX_GREEN,LOOK_IDS,PRESET_IDS,PRESETS,PALETTES,GLYPH_FACES,SCHEMA,presetValues,readConfig,engineConfig,recolor,is3dPreset,lookOf} from './config.mjs';
+import {normalizeSettings} from './settings.mjs';
+for(const id of LOOK_IDS){
   const base=upstream({version:id}),values=readConfig(`https://example.test/?preset=${id}&palette=reference`),result=engineConfig(values);
   for(const key of ['numColumns','fallSpeed','cycleSpeed','raindropLength','animationSpeed','bloomSize','bloomStrength','resolution','forwardSpeed','volumetric','palette','cursorColor'])assert.deepEqual(result[key],key==='forwardSpeed'&&id!=='3d'?0:base[key],`${id}: ${key}`);
   assert.equal(result.glyphMix,.1);assert.equal(result.generatedCount,192);
@@ -19,4 +20,47 @@ assert.equal(alias.preset,'operator');assert.equal(alias.numColumns,120);assert.
 const applied=readConfig('https://example.test/?preset=3d&originalMix=37&autoTravel=false');
 assert.equal(engineConfig(applied).volumetric,true);assert.equal(engineConfig(applied).forwardSpeed,0);
 assert.equal(readConfig('https://example.test/?preset=classic&volumetric=true').preset,'classic');
-console.log('Configuration: reference presets, mix endpoints, aliases, URL validation and paused automatic travel passed.');
+
+// Every preset is a complete, in-range configuration on one of the three looks.
+assert.equal(new Set(PRESET_IDS).size,PRESET_IDS.length);assert.ok(PRESET_IDS.length>=12);
+assert.deepEqual(PRESETS.map(preset=>preset.id),PRESET_IDS);
+for(const preset of PRESETS){
+  assert.ok(LOOK_IDS.includes(lookOf(preset.id)),preset.id);
+  assert.deepEqual(normalizeSettings(SCHEMA,preset.values),preset.values,`${preset.id} stays within the panel's ranges`);
+  const values=readConfig(`https://example.test/?preset=${preset.id}`),config=engineConfig(values);
+  assert.equal(values.preset,preset.id);assert.equal(config.volumetric,is3dPreset(preset.id));
+  assert.ok(config.palette.length>=3&&config.palette.every(entry=>entry.at>=0&&entry.at<=1));
+}
+assert.equal(is3dPreset('warp'),true);assert.equal(is3dPreset('downpour'),false);assert.equal(lookOf('unknown'),'classic');
+const warp=engineConfig(readConfig('https://example.test/?preset=warp'));
+assert.equal(warp.volumetric,true);assert.equal(warp.forwardSpeed,2.5);assert.equal(warp.density,1.75);
+assert.equal(readConfig('https://example.test/?preset=inferno&numColumns=60').numColumns,60);
+
+// Palettes: every choice is offered, single-hue palettes keep a look's stops,
+// and blends span their hues from dim to bright over the same exposure.
+assert.deepEqual(SCHEMA.find(field=>field.key==='palette').options.map(option=>option.value),PALETTES.map(palette=>palette.value));
+assert.ok(PALETTES.length>=12);
+const ramp=upstream({version:'classic'}).palette;
+const amber=recolor(ramp,PALETTES.find(palette=>palette.value==='amber'));
+assert.deepEqual(amber.map(entry=>entry.at),ramp.map(entry=>entry.at));
+assert.ok(amber.every(entry=>entry.color.values[0]===.12));
+const fire=recolor(ramp,PALETTES.find(palette=>palette.value==='fire'));
+assert.equal(fire.length,17);assert.equal(fire[0].at,0);assert.equal(fire.at(-1).at,1);
+assert.equal(fire[0].color.values[0],0);assert.equal(fire.at(-1).color.values[0],.14);
+assert.equal(fire.at(-1).color.values[2],ramp.at(-1).color.values[2]);
+for(let index=1;index<fire.length;index++)assert.ok(fire[index].color.values[2]>=fire[index-1].color.values[2]);
+const ghost=engineConfig(readConfig('https://example.test/?palette=monochrome'));
+assert.ok(ghost.palette.every(entry=>entry.color.values[1]===0));
+
+// Glyph faces: the Smythe face mixes with the reference glyphs; Yautja fills
+// every cell from its own 52-glyph atlas and ignores the mix.
+assert.deepEqual(GLYPH_FACES.map(face=>face.value),['smythe','yautja']);
+const yautja=engineConfig(readConfig('https://example.test/?glyphFace=yautja&originalMix=10'));
+assert.equal(yautja.glyphMix,1);assert.equal(yautja.generatedCount,52);assert.deepEqual(yautja.generatedGrid,[13,4]);
+assert.ok(yautja.generatedAtlasURL.endsWith('/faces/yautja-sdf.png'));
+assert.equal(engineConfig(readConfig('https://example.test/?glyphFace=unknown')).generatedCount,192);
+const mix=SCHEMA.find(field=>field.key==='originalMix');
+assert.equal(mix.enabledWhen({glyphFace:'smythe'}),true);assert.equal(mix.enabledWhen({glyphFace:'yautja'}),false);
+const hunter=readConfig('https://example.test/?preset=hunter');
+assert.equal(hunter.glyphFace,'yautja');assert.equal(hunter.palette,'crimson');
+console.log('Configuration: reference looks, mix endpoints, aliases, URL validation, paused automatic travel, presets, palettes and glyph faces passed.');

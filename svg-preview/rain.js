@@ -1,6 +1,6 @@
 import {mountSettings,serializeSettingsUrl} from './settings.mjs';
 import {mountHud} from './hud.mjs';
-import {SCHEMA,PRESETS,presetValues,readConfig,engineConfig} from './config.mjs';
+import {SCHEMA,PRESETS,presetValues,readConfig,engineConfig,is3dPreset,presetLabel,faceOf} from './config.mjs';
 import makeRain from './engine/rainPass.js';
 import makeBloom from './engine/bloomPass.js';
 import makePalette from './engine/palettePass.js';
@@ -51,12 +51,12 @@ function direction(){
     z:Number(keys.has('ArrowUp'))-Number(keys.has('ArrowDown'))};
 }
 function move(dt){
-  if(values.preset!=='3d')return;
+  if(!is3dPreset(values.preset))return;
   const vector=direction(),diagonal=vector.x&&vector.z?Math.SQRT1_2:1;
   motion.x=wrap(motion.x+vector.x*12*dt*diagonal+70,140)-70;
   motion.z=wrap(motion.z+vector.z*18*dt*diagonal,60);
 }
-function moving(){return values.preset==='3d'&&(held.size||pointers.size);}
+function moving(){return is3dPreset(values.preset)&&(held.size||pointers.size);}
 function active(){return scene&&!applying&&!contextLost&&!document.hidden&&(!paused||moving());}
 function schedule(){if(handle===null&&active()){last=performance.now();handle=requestAnimationFrame(frame);}}
 function stop(){if(handle!==null)cancelAnimationFrame(handle);handle=null;}
@@ -90,11 +90,11 @@ async function fullscreen(){
   catch{status.textContent='Fullscreen is unavailable in this browser.';}
 }
 function updateChrome(){
-  const is3d=values.preset==='3d';
+  const is3d=is3dPreset(values.preset);
   document.getElementById('mode').textContent=is3d?'Classic view':'Enter 3D';
   document.getElementById('mode').setAttribute('aria-pressed',String(is3d));
-  document.getElementById('mode-label').textContent=is3d?'Noumenon / 3D':values.preset==='operator'?'Noumenon / Operator':'Noumenon';
-  document.getElementById('mode-read').textContent=is3d?'3D':values.preset==='operator'?'Operator':'Classic';
+  document.getElementById('mode-read').textContent=presetLabel(values.preset);
+  document.getElementById('glyph-read').textContent=faceOf(values.glyphFace).summary;
   document.querySelector('.key-hint').textContent=is3d?'Arrow keys to move':'Enter 3D to explore';
   document.body.classList.toggle('is-3d',is3d);
   for(const button of document.querySelectorAll('[data-direction]'))button.disabled=!is3d;
@@ -130,7 +130,7 @@ function editable(target){return target.closest?.('input,select,textarea,[conten
 addEventListener('keydown',event=>{
   if(editable(event.target)||event.altKey||event.ctrlKey||event.metaKey)return;wake();
   if(event.code.startsWith('Arrow')){
-    if(values.preset!=='3d')return;
+    if(!is3dPreset(values.preset))return;
     if(benchmark)finishMeasurement('Navigation during measurement');
     held.add(event.code);event.preventDefault();schedule();
   }else if(event.code==='Space'&&!event.repeat&&!event.target.closest?.('button,a')){event.preventDefault();pause();}
@@ -148,7 +148,7 @@ document.getElementById('pause').addEventListener('click',()=>pause());
 document.getElementById('reset').addEventListener('click',reset);
 document.getElementById('fullscreen').addEventListener('click',fullscreen);
 document.getElementById('mode').addEventListener('click',()=>{
-  const next={...presetValues(values.preset==='3d'?'classic':'3d'),originalMix:values.originalMix};
+  const next={...presetValues(is3dPreset(values.preset)?'classic':'3d'),originalMix:values.originalMix,glyphFace:values.glyphFace};
   location.assign(serializeSettingsUrl(location.href,next,SCHEMA,{presetId:next.preset}));
 });
 for(const button of document.querySelectorAll('[data-direction]')){
