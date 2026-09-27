@@ -17,3 +17,4 @@ face-sources/
 .ruff_cache/
 AGENTS.override.md
 infrastructure/
+/assets/

@@ -1,4 +1,20 @@
-# Noumenon
+<div align="center">
+  <img src="assets/wordmark.svg" alt="NOUMENON" width="360">
+  <p><em>An animated glyph-rain screensaver and WebGL explorer, built as a demonstration of Smythe's agent swarm orchestration.</em></p>
+  <p>
+    <a href="https://github.com/petehottelet/noumenon/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush"><img src="https://github.com/petehottelet/noumenon/actions/workflows/ci.yml/badge.svg?branch=main&amp;event=push" alt="CI status on main"></a>
+    <a href="https://noumenon-six.vercel.app/svg-preview/"><img src="assets/badges/explorer.svg" alt="Live explorer"></a>
+    <img src="assets/badges/platforms.svg" alt="Platforms: Windows, macOS, and Linux">
+    <a href="https://github.com/petehottelet/smythe"><img src="assets/badges/smythe.svg" alt="Built with Smythe"></a>
+    <a href="LICENSE"><img src="assets/badges/license.svg" alt="License: MIT"></a>
+  </p>
+  <p>
+    <a href="https://noumenon-six.vercel.app/svg-preview/">Live explorer</a> ·
+    <a href="#how-it-works">How it works</a> ·
+    <a href="#run-the-web-views">Run the web views</a> ·
+    <a href="#build-the-native-ports">Build the native ports</a>
+  </p>
+</div>
 
 Noumenon is an animated screensaver and web explorer that is a demonstration project for 
 [Smythe](https://github.com/petehottelet/smythe)'s agent swarm orchestration. As a benchmark, generating runs of **192 and 256 original SVG glyphs**.
