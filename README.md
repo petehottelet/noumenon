@@ -84,7 +84,7 @@ the gear shows beside it; the two fade out together. Afterwards the gear
 fades in only while a mouse hovers the corner. Escape or a click on the rain
 closes the panel. Changes apply live, and the URL retains the configuration.
 Space pauses playback, R resets the viewpoint, and F toggles fullscreen. The
-panel is a folder whose raised tab, flush left with a 45° slope, carries the
+panel is a folder whose raised tab, flush left with a 60° slope, carries the
 outlined Trajan Bold SMYTHE wordmark; it sets Roboto and IBM Plex Mono in green `#37FF6E` and bright
 `#9CFFBC` with a soft glow and scanlines, and its menus open in the same
 style. With any other body palette, the panel, tooltip, gear, and wordmark

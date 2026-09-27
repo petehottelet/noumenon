@@ -125,7 +125,7 @@ function panelWorld(){
 }
 
 // The folder outline: a tab flush with the body's left edge that slopes down to
-// the body at 45 degrees, all inside the panel box.
+// the body at 60 degrees, all inside the panel box.
 {
   const geometry={tabWidth:228,tabHeight:52};
   const numbers=path=>path.match(/-?\d+(?:\.\d+)?/g).map(Number);
@@ -137,7 +137,11 @@ function panelWorld(){
   const corners=points(outline);
   assert.equal(Math.min(...corners.map(([x])=>x)),0,'the tab is flush with the left edge');
   const slopes=corners.slice(1).map((point,index)=>[point[0]-corners[index][0],point[1]-corners[index][1]]).filter(([dx,dy])=>dx>20&&dy>20);
-  assert.equal(slopes.length,1);assert.ok(Math.abs(slopes[0][0]-slopes[0][1])<.02,'the tab slopes at 45 degrees');
+  assert.equal(slopes.length,1);assert.ok(Math.abs(Math.atan2(slopes[0][1],slopes[0][0])*180/Math.PI-60)<.05,'the tab slopes at 60 degrees');
+  // A steeper slope meets the body sooner: at 60 degrees its run is 30 px instead of 52.
+  const meets=path=>Math.min(...points(path).filter(([x,y])=>y===52&&x>228).map(([x])=>x));
+  assert.ok(meets(outline)<meets(folderPath(900,420,{...geometry,slope:45}))-20);
+  assert.throws(()=>folderPath(900,420,{...geometry,slope:90}),/between 0 and 90/);
   for(const [x,y] of corners)assert.ok(x>=0&&x<=900&&y>=0&&y<=420);
   const inset=folderPath(900,420,geometry,.5);
   assert.ok(inset.startsWith('M14 0.5'));
