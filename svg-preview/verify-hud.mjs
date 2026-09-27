@@ -124,21 +124,25 @@ function panelWorld(){
   hud.showTip();await advance(3000);assert.equal(tip.hidden,true);assert.equal(tip.classList.contains('leaving'),false);
 }
 
-// The folder outline: a raised tab on the body's top edge, inside the panel box.
+// The folder outline: a tab flush with the body's left edge that slopes down to
+// the body at 45 degrees, all inside the panel box.
 {
-  const geometry={tabLeft:30,tabWidth:228,tabHeight:52};
-  const outline=folderPath(900,420,geometry);
-  assert.ok(outline.startsWith('M0 70'));assert.ok(outline.endsWith('Z'));
-  assert.ok(outline.includes('L20 52'),'the body edge runs to the left fillet');
-  assert.ok(outline.includes('L246 0'),'the tab top runs to its right corner');
-  assert.ok(outline.includes('L882 52'),'the body edge runs to its top-right corner');
+  const geometry={tabWidth:228,tabHeight:52};
   const numbers=path=>path.match(/-?\d+(?:\.\d+)?/g).map(Number);
   const points=path=>{const values=numbers(path);return path.replace(/[^MLAZ]/g,'').split('').flatMap(command=>command==='Z'?[]:command==='A'?[values.splice(0,7).slice(5)]:[values.splice(0,2)]);};
-  for(const [x,y] of points(outline)){assert.ok(x>=0&&x<=900&&y>=0&&y<=420);}
+  const outline=folderPath(900,420,geometry);
+  assert.ok(outline.startsWith('M14 0'));assert.ok(outline.endsWith('Z'));
+  assert.ok(outline.includes('L0 14'),'the left edge runs straight up to the tab corner');
+  assert.ok(outline.includes('L882 52'),'the body edge runs to its top-right corner');
+  const corners=points(outline);
+  assert.equal(Math.min(...corners.map(([x])=>x)),0,'the tab is flush with the left edge');
+  const slopes=corners.slice(1).map((point,index)=>[point[0]-corners[index][0],point[1]-corners[index][1]]).filter(([dx,dy])=>dx>20&&dy>20);
+  assert.equal(slopes.length,1);assert.ok(Math.abs(slopes[0][0]-slopes[0][1])<.02,'the tab slopes at 45 degrees');
+  for(const [x,y] of corners)assert.ok(x>=0&&x<=900&&y>=0&&y<=420);
   const inset=folderPath(900,420,geometry,.5);
-  assert.ok(inset.startsWith('M0.5 70'));
-  for(const [x,y] of points(inset)){assert.ok(x>=.5&&x<=899.5&&y>=.5&&y<=419.5);}
-  assert.throws(()=>folderPath(900,420,{...geometry,tabLeft:5}),/does not fit/);
+  assert.ok(inset.startsWith('M14 0.5'));
+  for(const [x,y] of points(inset))assert.ok(x>=.5&&x<=899.5&&y>=.5&&y<=419.5);
+  assert.throws(()=>folderPath(900,420,{...geometry,tabWidth:860}),/does not fit/);
   assert.throws(()=>folderPath(NaN,420,geometry),/finite/);
 }
 

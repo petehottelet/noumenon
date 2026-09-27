@@ -61,20 +61,38 @@ export function mountHud({panel,corner,tip,dismissTargets=[],reducedMotion=false
   return Object.freeze({open:()=>setOpen(true),close:()=>setOpen(false),toggle:()=>setOpen(!open),isOpen:()=>open,showTip,hideTip});
 }
 
-// Outline of a folder: a rounded body with a raised tab on its top edge, joined
-// by concave fillets. Coordinates are CSS pixels with the origin at the top left;
-// inset moves every edge inward so a stroke of twice that width stays inside.
-export function folderPath(width,height,{tabLeft,tabWidth,tabHeight,radius=18,tabRadius=12,fillet=10},inset=0){
-  const values=[width,height,tabLeft,tabWidth,tabHeight,radius,tabRadius,fillet,inset];
+// Outline of a folder whose tab sits flush with the body's left edge and slopes
+// down to the body's top edge at 45 degrees. Each corner is rounded; the slope's
+// two ends take small joins. Coordinates are CSS pixels with the origin at the
+// top left; inset moves every edge inward so a stroke of twice that width stays
+// inside the clipped panel.
+export function folderPath(width,height,{tabWidth,tabHeight,radius=18,tabRadius=14,join=8},inset=0){
+  const values=[width,height,tabWidth,tabHeight,radius,tabRadius,join,inset];
   if(!values.every(Number.isFinite)||values.some(value=>value<0))throw new RangeError('Folder dimensions must be finite and non-negative');
-  const W=width,H=height,T=tabHeight,a=tabLeft,b=tabLeft+tabWidth,i=inset;
-  const r=Math.min(radius,(H-T)/2,W/2),f=Math.min(fillet,a-r,W-r-b),t=Math.min(tabRadius,tabWidth/2,T-f);
-  if(r<i||f<0||t<i||T<t+f)throw new RangeError('The tab does not fit on the folder body');
-  const n=value=>Number(value.toFixed(2)),arc=(radius,sweep,x,y)=>`A${n(radius)} ${n(radius)} 0 0 ${sweep} ${n(x)} ${n(y)}`;
-  return [`M${n(i)} ${n(T+r)}`,arc(r-i,1,r,T+i),`L${n(a-f)} ${n(T+i)}`,arc(f+i,0,a+i,T-f),
-    `L${n(a+i)} ${n(t)}`,arc(t-i,1,a+t,i),`L${n(b-t)} ${n(i)}`,arc(t-i,1,b-i,t),
-    `L${n(b-i)} ${n(T-f)}`,arc(f+i,0,b+f,T+i),`L${n(W-r)} ${n(T+i)}`,arc(r-i,1,W-i,T+r),
-    `L${n(W-i)} ${n(H-r)}`,arc(r-i,1,W-r,H-i),`L${n(r)} ${n(H-i)}`,arc(r-i,1,i,H-r),'Z'].join('');
+  const W=width,H=height,T=tabHeight,b=tabWidth;
+  if(b<tabRadius+join||T<tabRadius+join||b+T>W-radius-join||H-T<2*radius)throw new RangeError('The tab does not fit on the folder body');
+  // Clockwise corners and their radii: the tab's top left, both ends of the slope, then the body.
+  const corners=[[0,0,tabRadius],[b,0,join],[b+T,T,join],[W,T,radius],[W,H,radius],[0,H,radius]];
+  // Move each edge inward along its normal, then intersect neighbouring edges.
+  const edges=corners.map(([x,y],k)=>{
+    const [nextX,nextY]=corners[(k+1)%corners.length],length=Math.hypot(nextX-x,nextY-y),dx=(nextX-x)/length,dy=(nextY-y)/length;
+    return {x:x-dy*inset,y:y+dx*inset,dx,dy};
+  });
+  const cross=(ax,ay,bx,by)=>ax*by-ay*bx,n=value=>Number(value.toFixed(2));
+  const turns=edges.map((edge,k)=>{
+    const prev=edges[(k+edges.length-1)%edges.length];
+    const t=cross(edge.x-prev.x,edge.y-prev.y,edge.dx,edge.dy)/cross(prev.dx,prev.dy,edge.dx,edge.dy);
+    const x=prev.x+prev.dx*t,y=prev.y+prev.dy*t,convex=cross(prev.dx,prev.dy,edge.dx,edge.dy)>0;
+    const angle=Math.acos(Math.max(-1,Math.min(1,prev.dx*edge.dx+prev.dy*edge.dy)));
+    const round=Math.max(0,corners[k][2]+(convex?-inset:inset)),reach=round*Math.tan(angle/2);
+    return {round,sweep:convex?1:0,from:[x-prev.dx*reach,y-prev.dy*reach],to:[x+edge.dx*reach,y+edge.dy*reach]};
+  });
+  const path=[`M${n(turns[0].to[0])} ${n(turns[0].to[1])}`];
+  for(let k=1;k<=turns.length;k++){
+    const turn=turns[k%turns.length];
+    path.push(`L${n(turn.from[0])} ${n(turn.from[1])}`,`A${n(turn.round)} ${n(turn.round)} 0 0 ${turn.sweep} ${n(turn.to[0])} ${n(turn.to[1])}`);
+  }
+  return path.join('')+'Z';
 }
 
 // Clip the panel to the folder outline and draw that outline, following the
@@ -84,7 +102,7 @@ function mountFolder(panel){
   const stroke=panel.querySelector?.('.hud-outline path');
   if(!tab||!body||!stroke||typeof window.ResizeObserver!=='function')return;
   const draw=()=>{
-    const geometry={tabLeft:tab.offsetLeft,tabWidth:tab.offsetWidth,tabHeight:body.offsetTop};
+    const geometry={tabWidth:tab.offsetWidth,tabHeight:body.offsetTop};
     try{
       panel.style.clipPath=`path('${folderPath(panel.offsetWidth,panel.offsetHeight,geometry)}')`;
       stroke.setAttribute('d',folderPath(panel.offsetWidth,panel.offsetHeight,geometry,.5));
