@@ -43,7 +43,8 @@ The corner is otherwise empty. For five seconds after the page loads, a
 tooltip names it and the gear shows in its circle; both fade out together.
 Afterwards a hovering mouse fades the gear in, and touch screens show it only
 beside that first tooltip. Opening the panel invalidates a running
-measurement.
+measurement. Inside a menu, S types ahead to an option instead of closing the
+panel, and Escape closes an open menu before it closes the panel.
 
 Every preset builds on one of three looks: Classic, the default 2D effect;
 Operator; and 3D, which adds navigation. The presets are Classic, Operator,
@@ -52,15 +53,19 @@ terminal, Ghost, Spectrum, Hunter, Warp speed, Runestones, Arcade, and
 Mainframe. Each preset only sets
 values the panel exposes, so any preset can be adjusted afterwards, and the
 3D travel controls apply to 3D and Warp speed. The 3D look draws twice the
-reference's stream density, and the 3D density slider reaches 4×. **Enter 3D** and **Classic view**
+reference's stream density, and the 3D density slider reaches 4×. Once a
+control leaves the chosen preset's values, the menu reads **Custom**; choosing
+the preset again restores it. The address keeps the preset either way, so a
+reload returns to the same look. **Enter 3D** and **Classic view**
 switch the look but keep the glyph face, mix, palette, background, and leading
 glyph color, so a preset's colors carry across. The glyph face, original-glyph
 mix,
 columns, motion, glow, render scale, glyph transforms, travel, and supported
 colors apply live: sliders and colour pickers rebuild the scene once they
 settle, and other controls apply at once. Changes made during a rebuild wait
-for it and then apply together. The URL keeps each applied configuration; if
-a rebuild fails, the panel reports why and restores the running settings.
+for it and then apply together. The URL keeps each applied configuration. If
+a rebuild fails, the panel reports why and undoes only that rebuild's change;
+edits made while it ran still apply.
 Only options supported by the selected engine are exposed.
 
 The default **Matrix green** grade uses a 137-degree body hue and mint

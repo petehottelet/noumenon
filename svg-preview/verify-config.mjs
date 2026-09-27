@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import upstream from './engine/upstream-config.mjs';
-import {MATRIX_GREEN,LOOK_IDS,PRESET_IDS,PRESETS,PALETTES,GLYPH_FACES,SCHEMA,THEME_PROPERTIES,CARRIED_ACROSS_LOOKS,presetValues,readConfig,engineConfig,recolor,interfaceTheme,toggleThreeD,is3dPreset,lookOf} from './config.mjs';
-import {normalizeSettings} from './settings.mjs';
+import {MATRIX_GREEN,LOOK_IDS,PRESET_IDS,PRESETS,PALETTES,GLYPH_FACES,SCHEMA,THEME_PROPERTIES,CARRIED_ACROSS_LOOKS,declaredPresetValues,presetValues,readConfig,engineConfig,recolor,interfaceTheme,toggleThreeD,is3dPreset,lookOf} from './config.mjs';
 for(const id of LOOK_IDS){
   const base=upstream({version:id}),values=readConfig(`https://example.test/?preset=${id}&palette=reference`),result=engineConfig(values);
   for(const key of ['numColumns','fallSpeed','cycleSpeed','raindropLength','animationSpeed','bloomSize','bloomStrength','resolution','forwardSpeed','volumetric','palette','cursorColor'])assert.deepEqual(result[key],key==='forwardSpeed'&&id!=='3d'?0:base[key],`${id}: ${key}`);
@@ -26,7 +25,12 @@ assert.equal(new Set(PRESET_IDS).size,PRESET_IDS.length);assert.ok(PRESET_IDS.le
 assert.deepEqual(PRESETS.map(preset=>preset.id),PRESET_IDS);
 for(const preset of PRESETS){
   assert.ok(LOOK_IDS.includes(lookOf(preset.id)),preset.id);
-  assert.deepEqual(normalizeSettings(SCHEMA,preset.values),preset.values,`${preset.id} stays within the panel's ranges`);
+  // Each preset applies exactly what it declares: no value is clamped or rounded to a slider step.
+  const declared=declaredPresetValues(preset.id);
+  for(const field of SCHEMA)if(declared[field.key]!==undefined){
+    const same=field.type==='range'?Math.abs(preset.values[field.key]-declared[field.key])<1e-9:preset.values[field.key]===declared[field.key];
+    assert.ok(same,`${preset.id} applies its declared ${field.key}: ${declared[field.key]} became ${preset.values[field.key]}`);
+  }
   const values=readConfig(`https://example.test/?preset=${preset.id}`),config=engineConfig(values);
   assert.equal(values.preset,preset.id);assert.equal(config.volumetric,is3dPreset(preset.id));
   assert.ok(config.palette.length>=3&&config.palette.every(entry=>entry.at>=0&&entry.at<=1));
