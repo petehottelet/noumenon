@@ -66,7 +66,10 @@ palette. White, Amber, Crimson, Toxic and Ultraviolet hold one hue; Sakura
 and Ice also pale toward their brightest glyphs; Fire, Synthwave, Aurora and
 Spectrum blend from one hue in the dim trails to another at the heads. Every
 palette keeps the look's exposure curve, and the leading glyph color is
-independently adjustable.
+independently adjustable. The interface follows the palette too: the panel,
+menus, tooltip, gear, outline, and wordmark take the dim-trail hue for text
+and glass and the head hue for highlights. Matrix green keeps the panel's
+designed colors.
 
 **Glyph face** chooses what the rain draws. **Smythe + classic** mixes the
 192 originals with the 56 reference glyphs at the original-glyph share. Every

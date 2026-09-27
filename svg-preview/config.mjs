@@ -89,6 +89,36 @@ export function recolor(ramp,palette){
   return Array.from({length:17},(_,index)=>({color:color(sample(index/16)),at:index/16}));
 }
 
+// The interface takes its colors from the body palette: the dim-trail hue for
+// text, outlines and glass, the head hue for highlights. Matrix green keeps the
+// panel's designed colors; from its hue this recipe gives a near match.
+export const THEME_PROPERTIES=['--phos-rgb','--phos-bright-rgb','--ink-rgb','--phos','--phos-bright','--phos-dim','--phos-faint',
+  '--bar','--panel','--control','--ink','--rain-green','--rain-bright','--rain-dim','--rain-rule','--rain-faint','--rain-field','--rain-inverse'];
+export function interfaceTheme(values){
+  if(values.palette==='matrix')return null;
+  let palette=PALETTES.find(item=>item.value===values.palette&&item.hue!==undefined);
+  if(!palette){
+    const top=upstreamConfig({version:lookOf(values.preset)}).palette.filter(entry=>entry.color.space==='hsl').at(-1);
+    palette=top?{hue:top.color.values[0],saturation:top.color.values[1]}:{hue:MATRIX_GREEN.hue,saturation:MATRIX_GREEN.saturation};
+  }
+  const tone=t=>{const saturation=Math.min(1,blend(palette.saturation,t)*1.25);return {hue:blend(palette.hue,t),saturation,lift:1-saturation};};
+  const trail=tone(.35),head=tone(1);
+  const color=({hue},saturation,l)=>hslToRgb({space:'hsl',values:[hue,saturation,l]}).map(value=>Math.round(value*255));
+  const phos=color(trail,trail.saturation,.61+.2*trail.lift),bright=color(head,head.saturation,.81+.1*head.lift);
+  const ink=color(trail,.82*trail.saturation,.043),control=color(trail,.69*trail.saturation,.05);
+  const rgbText=channels=>`rgb(${channels.join(', ')})`,rgbaText=(channels,alpha)=>`rgba(${channels.join(', ')}, ${alpha})`;
+  return {
+    '--phos-rgb':phos.join(', '),'--phos-bright-rgb':bright.join(', '),'--ink-rgb':ink.join(', '),
+    '--phos':rgbText(phos),'--phos-bright':rgbText(bright),
+    '--phos-dim':rgbText(color(trail,.62*trail.saturation,.48+.2*trail.lift)),
+    '--phos-faint':rgbText(color(trail,.61*trail.saturation,.41+.15*trail.lift)),
+    '--bar':rgbaText(color(trail,.6*trail.saturation,.029),.84),'--panel':rgbaText(color(trail,.64*trail.saturation,.043),.5),
+    '--control':rgbText(control),'--ink':rgbText(ink),
+    '--rain-green':rgbText(phos),'--rain-bright':rgbText(bright),'--rain-dim':rgbaText(phos,.62),'--rain-rule':rgbaText(phos,.62),
+    '--rain-faint':rgbaText(phos,.26),'--rain-field':rgbText(control),'--rain-inverse':rgbText(ink)
+  };
+}
+
 export const SCHEMA=resolveSettingsSchema([
   {key:'glyphFace',type:'select',label:'Glyph face',group:'Look',options:GLYPH_FACES.map(({value,label})=>({value,label})),default:'smythe'},
   {key:'originalMix',enabledWhen:v=>faceOf(v.glyphFace).mixesReference},'numColumns',

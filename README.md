@@ -87,7 +87,8 @@ Space pauses playback, R resets the viewpoint, and F toggles fullscreen. The
 panel is a folder whose raised tab carries the outlined Trajan Bold SMYTHE
 wordmark; it sets Roboto and IBM Plex Mono in green `#37FF6E` and bright
 `#9CFFBC` with a soft glow and scanlines, and its menus open in the same
-style. The rain's default grade is 137° Matrix green with mint `#A2FFD8`
+style. With any other body palette, the panel, tooltip, gear, and wordmark
+take their colors from it. The rain's default grade is 137° Matrix green with mint `#A2FFD8`
 highlights; Reference colors and 11 other palettes remain selectable. The
 [explorer guide](svg-preview/README.md) covers settings, the renderer, and its
 checks.

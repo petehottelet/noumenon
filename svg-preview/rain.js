@@ -1,6 +1,6 @@
 import {mountSettings,serializeSettingsUrl} from './settings.mjs';
 import {mountHud} from './hud.mjs';
-import {SCHEMA,PRESETS,presetValues,readConfig,engineConfig,is3dPreset,presetLabel,faceOf} from './config.mjs';
+import {SCHEMA,PRESETS,presetValues,readConfig,engineConfig,is3dPreset,presetLabel,faceOf,interfaceTheme,THEME_PROPERTIES} from './config.mjs';
 import makeRain from './engine/rainPass.js';
 import makeBloom from './engine/bloomPass.js';
 import makePalette from './engine/palettePass.js';
@@ -95,6 +95,9 @@ function updateChrome(){
   document.getElementById('mode').setAttribute('aria-pressed',String(is3d));
   document.getElementById('mode-read').textContent=presetLabel(values.preset);
   document.getElementById('glyph-read').textContent=faceOf(values.glyphFace).summary;
+  // The panel, tooltip and wordmark follow the body palette.
+  const theme=interfaceTheme(values),root=document.documentElement.style;
+  for(const property of THEME_PROPERTIES){if(theme)root.setProperty(property,theme[property]);else root.removeProperty(property);}
   document.querySelector('.key-hint').textContent=is3d?'Arrow keys to move':'Enter 3D to explore';
   document.body.classList.toggle('is-3d',is3d);
   for(const button of document.querySelectorAll('[data-direction]'))button.disabled=!is3d;
