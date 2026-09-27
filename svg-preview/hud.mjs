@@ -2,6 +2,9 @@
 // shows no gear until a mouse hovers it. A tooltip names the corner once and
 // shows the gear beside it; both fade out together.
 const TEXT_ENTRY='textarea,[contenteditable],input:not([type]),input[type=text],input[type=search],input[type=number],input[type=email],input[type=url]';
+// Customizable selects match :open while their picker shows; other browsers
+// keep native pickers, which receive their own keys.
+const pickerOpen=menu=>{try{return menu.matches(':open');}catch{return false;}};
 
 export function mountHud({panel,corner,tip,dismissTargets=[],reducedMotion=false,tipDelayMs=900,tipMs=5000,onChange=()=>{}}){
   if(!panel?.ownerDocument||!corner||!tip)throw new TypeError('Pass the panel, corner button and tooltip elements');
@@ -44,13 +47,20 @@ export function mountHud({panel,corner,tip,dismissTargets=[],reducedMotion=false
 
   corner.addEventListener('click',()=>setOpen(!open));
   for(const target of dismissTargets)target.addEventListener('click',()=>setOpen(false));
-  // S toggles the panel from anywhere except text entry; Escape closes it.
+  // S toggles the panel from anywhere except text entry and menus, where it
+  // types ahead to an option. Escape closes the panel, but an open menu's
+  // picker closes first, so the picker is never left behind an inert panel.
   window.addEventListener('keydown',event=>{
     if(event.ctrlKey||event.metaKey||event.altKey||event.target?.closest?.(TEXT_ENTRY))return;
+    const menu=event.target?.closest?.('select');
     if(event.code==='KeyS'){
+      if(menu)return;
       event.preventDefault();event.stopPropagation();
       if(!event.repeat)setOpen(!open);
-    }else if(event.code==='Escape'&&open){event.preventDefault();setOpen(false);}
+    }else if(event.code==='Escape'&&open){
+      if(menu&&pickerOpen(menu))return;
+      event.preventDefault();setOpen(false);
+    }
   },true);
 
   // Start closed, without the dissolve animation.

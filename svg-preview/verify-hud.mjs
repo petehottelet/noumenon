@@ -32,7 +32,19 @@ function createWorld(){
     addEventListener(type,listener){if(!this.listeners.has(type))this.listeners.set(type,[]);this.listeners.get(type).push(listener);}
     dispatch(type,init={}){return fire(this.listeners.get(type)??[],{target:this,...init});}
     focus(){document.activeElement=this;}
-    closest(){return null;}
+    // Enough selector matching for the panel: tag names, input types,
+    // :not([type]), [contenteditable], and :open on a menu whose picker a test opens.
+    matches(selector){
+      if(selector===':open')return this.open===true;
+      return selector.split(',').some(part=>{
+        const match=part.trim().match(/^([a-z]*)(\[type=(\w+)\]|:not\(\[type\]\)|\[contenteditable\])?$/i);
+        if(!match||(match[1]&&match[1].toUpperCase()!==this.tagName))return false;
+        if(!match[2])return Boolean(match[1]);
+        if(match[2].startsWith(':not'))return !this.type;
+        return match[3]?this.type===match[3]:this.attributes.has('contenteditable');
+      });
+    }
+    closest(selector){for(let node=this;node;node=node.parent)if(node.matches(selector))return node;return null;}
     find(predicate){for(const child of this.children){if(predicate(child))return child;const found=child.find(predicate);if(found)return found;}return null;}
   }
   const window={
@@ -124,6 +136,24 @@ function panelWorld(){
   hud.showTip();await advance(3000);assert.equal(tip.hidden,true);assert.equal(tip.classList.contains('leaving'),false);
 }
 
+// Menus keep their own keys: S types ahead inside a menu instead of closing the
+// panel, and Escape closes an open picker before it closes the panel.
+{
+  const {key,panel,corner,tip,element}=panelWorld(),menu=element('select'),option=element('option'),text=element('input');
+  menu.append(option);panel.append(menu,text);
+  const hud=mountHud({panel,corner,tip,tipDelayMs:-1});
+  hud.open();menu.focus();
+  assert.equal(key('KeyS',{target:menu}).defaultPrevented,false);assert.equal(hud.isOpen(),true);
+  menu.open=true;
+  assert.equal(key('Escape',{target:option}).defaultPrevented,false,'an open picker closes itself first');
+  key('KeyS',{target:option});assert.equal(hud.isOpen(),true);
+  menu.open=false;
+  assert.equal(key('Escape',{target:menu}).defaultPrevented,true);assert.equal(hud.isOpen(),false);
+  // Text entry keeps both keys; a slider does not.
+  hud.open();key('KeyS',{target:text});key('Escape',{target:text});assert.equal(hud.isOpen(),true);
+  text.type='range';key('KeyS',{target:text});assert.equal(hud.isOpen(),false);
+}
+
 // The folder outline: a tab flush with the body's left edge that slopes down to
 // the body at 60 degrees, all inside the panel box.
 {
@@ -204,4 +234,52 @@ function panelWorld(){
   columns.value='41';columns.dispatch('input');deck.destroy();await advance(1000);
   assert.equal(applies.length,5);assert.equal(container.children.length,0);assert.equal(transport.children.length,0);
 }
-console.log('Passed: hidden corner, timed tooltip, keyboard and rain dismissal, reduced motion, and live settings that settle, queue, revert, and apply presets.');
+
+// Presets: edits that leave a preset keep it in the address, so a reload returns
+// to the same look; the menu shows Custom, and choosing the preset again restores it.
+{
+  const {window,document,advance,element}=createWorld();
+  window.location.href='https://example.test/svg-preview/?preset=calm';
+  const container=element('div'),transport=element('div');document.body.append(transport,container);
+  const applies=[],presets=[{id:'calm',label:'Calm',values:{numColumns:44,flip:false}},{id:'dense',label:'Dense',values:{numColumns:140,flip:false}}];
+  const deck=mountSettings({container,presetContainer:transport,schema:['numColumns','flip'],presets,initialConfig:{numColumns:44},
+    initialPresetId:'calm',onApply:(config,details)=>{applies.push({config,details});return Promise.resolve();}});
+  const picker=transport.find(node=>node.tagName==='SELECT'),custom=picker.children[0];
+  const columns=container.find(node=>node.name==='numColumns'),flip=container.find(node=>node.name==='flip');
+  assert.equal(custom.textContent,'Custom');assert.equal(custom.disabled,true,'Custom reports a state and cannot be picked');
+  assert.equal(picker.value,'calm');assert.equal(custom.hidden,true);
+  flip.checked=true;flip.dispatch('change');
+  assert.equal(picker.value,'');assert.equal(custom.hidden,false);
+  await advance(0);
+  assert.deepEqual(applies.at(-1).details,{changed:['flip'],presetId:'calm'});
+  assert.equal(new URL(window.location.href).searchParams.get('preset'),'calm','the address keeps the preset');
+  picker.value='calm';picker.dispatch('change');await advance(0);
+  assert.equal(flip.checked,false);assert.equal(picker.value,'calm');assert.equal(custom.hidden,true);
+  assert.deepEqual(applies.at(-1).details,{changed:['flip'],presetId:'calm'},'choosing the preset again restores it');
+  // A value that lands back on the preset shows the preset again.
+  columns.value='60';columns.dispatch('input');assert.equal(picker.value,'');
+  columns.value='44';columns.dispatch('input');assert.equal(picker.value,'calm');
+  await advance(400);assert.equal(applies.length,2);
+  // Initial values that differ from the preset start in the Custom state.
+  const {document:second,element:make}=createWorld(),box=make('div'),bar=make('div');second.body.append(bar,box);
+  mountSettings({container:box,presetContainer:bar,schema:['numColumns','flip'],presets,initialConfig:{numColumns:90},initialPresetId:'calm',onApply:()=>Promise.resolve()});
+  assert.equal(bar.find(node=>node.tagName==='SELECT').value,'');
+  deck.destroy();
+}
+
+// A failed rebuild undoes only its own change; an edit made while it ran survives and applies next.
+{
+  const {document,advance,element}=createWorld(),container=element('div');document.body.append(container);
+  const applies=[];let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  mountSettings({container,schema:['numColumns','flip'],initialConfig:{numColumns:80},syncUrl:false,onStatus(){},
+    onApply:(config,details)=>{applies.push({config,details});return applies.length===1?gate.then(()=>{throw new Error('WebGL is unavailable.');}):Promise.resolve();}});
+  const columns=container.find(node=>node.name==='numColumns'),flip=container.find(node=>node.name==='flip');
+  flip.checked=true;flip.dispatch('change');await advance(0);
+  columns.value='120';columns.dispatch('input');await advance(350);
+  assert.equal(applies.length,1);
+  release();await advance(0);
+  assert.equal(flip.checked,false,'the failed change is undone');assert.equal(columns.value,'120','the queued edit survives');
+  assert.equal(applies.length,2);assert.deepEqual(applies[1].details.changed,['numColumns']);assert.equal(applies[1].config.flip,false);
+}
+console.log('Passed: hidden corner, timed tooltip, keyboard and rain dismissal, menu keys, reduced motion, and live settings that settle, queue, revert only failed changes, keep the preset in the address, and show Custom.');
