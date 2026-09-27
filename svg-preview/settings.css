@@ -35,7 +35,8 @@
 }
 .hud-tab {
   position: relative; z-index: 2; flex: none; align-self: flex-start;
-  display: flex; align-items: center; height: 52px; margin-left: 30px; padding: 2px 28px 0;
+  /* Flush with the panel's left edge; the outline slopes away past its right edge. */
+  display: flex; align-items: center; height: 52px; margin-left: 0; padding: 2px 8px 0 24px;
   text-decoration: none;
 }
 /* The wordmark is a mask filled with the interface color, so it follows the palette. */

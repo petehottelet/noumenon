@@ -97,8 +97,9 @@ HUD: a glass folder along the bottom of the window, grouped controls in
 Roboto with IBM Plex Mono readouts, primary green `#37FF6E` and bright
 `#9CFFBC`, a soft phosphor glow, scanlines, and a pixel resolve when it opens.
 The folder's raised tab carries the SMYTHE wordmark, outlined Trajan Pro Bold
-that links to the Smythe repository; the panel is clipped to one continuous
-outline, with curved joins where the tab meets the body. In browsers with
+that links to the Smythe repository. The tab sits flush with the panel's left
+edge and slopes down to the body at 45 degrees, and one continuous outline
+traces both. In browsers with
 customizable selects, menus open as the same glass card with a green
 highlight; other browsers keep their native menu. The footer credits the
 reference renderer. These interface colors are
