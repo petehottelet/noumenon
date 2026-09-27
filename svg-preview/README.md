@@ -39,12 +39,19 @@ The static preview requires a WebGL-capable browser, with no API key or build st
 | Arrow left / right in 3D | Move sideways |
 | Escape, or a click on the rain | Close the settings panel |
 
-The corner shows no gear. A tooltip names it for five seconds after the page
-loads; a hovering mouse fades the gear in, and touch screens never show it.
-Opening the panel invalidates a running measurement.
+The corner is otherwise empty. For five seconds after the page loads, a
+tooltip names it and the gear shows in its circle; both fade out together.
+Afterwards a hovering mouse fades the gear in, and touch screens show it only
+beside that first tooltip. Opening the panel invalidates a running
+measurement.
 
-Settings provide Classic, 3D, and Operator presets. Classic is the default
-2D effect; navigation belongs to the 3D preset. The original-glyph mix,
+Every preset builds on one of three looks: Classic, the default 2D effect;
+Operator; and 3D, which adds navigation. The presets are Classic, Operator,
+3D, Downpour, Zen garden, Inferno, Synthwave, Northern lights, Amber
+terminal, Ghost, Spectrum, Hunter, and Warp speed. Each preset only sets
+values the panel exposes, so any preset can be adjusted afterwards, and the
+3D travel controls apply to 3D and Warp speed. The glyph face, original-glyph
+mix,
 columns, motion, glow, render scale, glyph transforms, travel, and supported
 colors apply live: sliders and colour pickers rebuild the scene once they
 settle, and other controls apply at once. Changes made during a rebuild wait
@@ -54,15 +61,31 @@ Only options supported by the selected engine are exposed.
 
 The default **Matrix green** grade uses a 137-degree body hue and mint
 `#A2FFD8` leading glyphs. **Reference colors** retains the original body
-palette; the leading glyph color is independently adjustable. Each preset
-keeps its exposure curve.
+palette. White, Amber, Crimson, Toxic and Ultraviolet hold one hue; Sakura
+and Ice also pale toward their brightest glyphs; Fire, Synthwave, Aurora and
+Spectrum blend from one hue in the dim trails to another at the heads. Every
+palette keeps the look's exposure curve, and the leading glyph color is
+independently adjustable.
+
+**Glyph face** chooses what the rain draws. **Smythe + classic** mixes the
+192 originals with the 56 reference glyphs at the original-glyph share.
+**Yautja** draws every cell from the 52 letter glyphs of the
+[Yautja](https://github.com/petehottelet/yautja) project's default HUD, the
+same glyphs its code rain uses, so the mix slider is disabled. Each of those
+glyphs is a cluster of angled bars; the face keeps the lit bars, since the
+unlit hairline rings vanish at rain sizes. The Hunter preset pairs the face
+with Crimson.
 
 The control panel follows [hottelet.com](https://www.hottelet.com/)'s floating
-HUD: a rounded glass bar along the bottom of the window, grouped controls in
+HUD: a glass folder along the bottom of the window, grouped controls in
 Roboto with IBM Plex Mono readouts, primary green `#37FF6E` and bright
 `#9CFFBC`, a soft phosphor glow, scanlines, and a pixel resolve when it opens.
-The SMYTHE wordmark uses outlined Trajan Pro Bold, with generous black
-padding, and links to the Smythe repository. These interface colors are
+The folder's raised tab carries the SMYTHE wordmark, outlined Trajan Pro Bold
+that links to the Smythe repository; the panel is clipped to one continuous
+outline, with curved joins where the tab meets the body. In browsers with
+customizable selects, menus open as the same glass card with a green
+highlight; other browsers keep their native menu. The footer credits the
+reference renderer. These interface colors are
 separate from the rain's 137° body hue and `#A2FFD8` highlights. Both fonts
 load from Google Fonts, and [font and logo provenance](fonts/provenance.json)
 records them; the Trajan font file is not bundled.
@@ -110,7 +133,12 @@ not measured performance results.
 The original glyphs reach the GPU through `generated-sdf.png`, a multi-channel
 signed distance field atlas built from the source SVGs with MSDFgen 1.13.
 [Its receipt](generated-sdf.json) binds the atlas to every source SVG, and
-`python export_generated_sdf.py --check` verifies that binding. The
+`python export_generated_sdf.py --check` verifies that binding. The Yautja
+face uses the same slot with `faces/yautja-sdf.png`, a single-channel signed
+distance field computed exactly from the lit bars of the vendored
+[polygon source](../face-sources/yautja/glyphs.json);
+[its receipt](faces/yautja-sdf.json) pins the upstream commit and file hash,
+and `python export_face_sdf.py --check` rebuilds and compares it. The
 [reference provenance](reference/provenance.json) identifies the pinned
 artwork.
 
@@ -121,8 +149,8 @@ node svg-preview/verify-settings.mjs
 node svg-preview/verify-hud.mjs
 ```
 
-The other offline checks cover presets, frame timing, the 3D model, source
-provenance, browser helpers, and measurement receipts:
+The other offline checks cover presets, palettes, glyph faces, frame timing,
+the 3D model, source provenance, browser helpers, and measurement receipts:
 
 ```bash
 node svg-preview/verify-config.mjs
@@ -148,7 +176,7 @@ These helpers drive a local browser through the `agent-browser` tool against
 a localhost server and write new receipts; each refuses to replace an existing
 one.
 
-- `review.mjs` checks all three presets, the default 10% mix and the 0% and
+- `review.mjs` checks the three looks, the default 10% mix and the 0% and
   100% endpoints, paused 3D movement and exact reset, the catalog page,
   settings and keyboard interruption of measurements, and WebGL context loss.
   It binds every served source and captures `preview.png`.

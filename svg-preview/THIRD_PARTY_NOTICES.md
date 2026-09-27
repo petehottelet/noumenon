@@ -13,8 +13,11 @@ a fork of [Rezmason/matrix](https://github.com/Rezmason/matrix), pinned at
 | Settings gear icon | Google [Material Symbols](https://github.com/google/material-design-icons); [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) | Path data inlined in [index.html](index.html) |
 | Roboto and IBM Plex Mono interface fonts | Loaded from Google Fonts at runtime, not redistributed; licenses for [Roboto](https://fonts.google.com/specimen/Roboto/license) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono/license) | [Font record](fonts/provenance.json) |
 
-The original 192-glyph Smythe catalog and Noumenon's mix controls and
-navigation additions are covered by the repository [MIT license](../LICENSE).
+The original 192-glyph Smythe catalog, the Yautja face's glyphs (from
+[Yautja](https://github.com/petehottelet/yautja), recorded in
+[their receipt](faces/yautja-sdf.json)), and Noumenon's mix controls and
+navigation additions are covered by the repository [MIT license](../LICENSE),
+with the same copyright holder.
 Imported reference characters are labeled separately and are not counted as
 newly generated benchmark outputs.
 
