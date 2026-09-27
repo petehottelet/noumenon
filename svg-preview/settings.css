@@ -17,25 +17,43 @@
 [hidden] { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-/* ---------- floating control bar ---------- */
+/* ---------- floating control panel: a folder with a raised title tab ---------- */
+/* One element carries the blur, glow and animations; hud.mjs clips it to the
+   folder outline and draws that outline, so the tab and body read as one piece. */
 .hud {
   position: fixed; z-index: 5;
   left: 16px; right: 16px; bottom: 16px;
   max-width: 1240px; margin-inline: auto;
+  display: flex; flex-direction: column;
+  max-height: calc(100dvh - 32px);
   background: radial-gradient(130% 95% at 50% -12%, rgba(var(--phos-rgb), .055), transparent 62%), var(--bar);
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  border: 1px solid var(--line); border-radius: 18px;
+  font: 700 12px/1.45 var(--ui); color: var(--phos); text-transform: uppercase;
+  text-shadow: var(--glow);
+  transition: opacity .25s ease, transform .25s ease;
+  animation: hud-pulse 3.6s ease-in-out infinite;
+}
+.hud-tab {
+  position: relative; z-index: 2; flex: none; align-self: flex-start;
+  display: flex; align-items: center; height: 52px; margin-left: 30px; padding: 2px 28px 0;
+  text-decoration: none;
+}
+.hud-tab img { display: block; width: 172px; height: auto; filter: drop-shadow(0 0 6px rgba(var(--phos-rgb), .35)); }
+.hud-tab:hover img { filter: drop-shadow(0 0 9px rgba(var(--phos-rgb), .6)); }
+.hud-tab:focus-visible { outline-offset: -8px; }
+.hud-body {
+  position: relative; flex: 1 1 auto; min-height: 0;
   padding: 12px 14px 10px;
   /* Below 1380px the centered panel reaches under the 70px corner hotspot;
      pad its right side by the overlap so no control sits beneath it. */
   padding-right: clamp(14px, calc(695px - 50vw), 59px);
-  max-height: calc(100dvh - 96px); overflow-y: auto; overscroll-behavior: contain;
+  overflow-y: auto; overscroll-behavior: contain;
   scrollbar-width: thin; scrollbar-color: var(--phos-dim) transparent;
-  font: 700 12px/1.45 var(--ui); color: var(--phos); text-transform: uppercase;
-  text-shadow: var(--glow);
-  box-shadow: 0 0 38px rgba(var(--phos-rgb), .10), 0 10px 44px rgba(0, 0, 0, .55), inset 0 0 46px rgba(var(--phos-rgb), .045);
-  transition: opacity .25s ease, transform .25s ease;
-  animation: hud-pulse 3.6s ease-in-out infinite;
+}
+.hud-outline { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: visible; }
+.hud-outline path {
+  fill: none; stroke: rgba(var(--phos-rgb), .42); stroke-width: 1;
+  filter: drop-shadow(0 0 3px rgba(var(--phos-rgb), .45)) drop-shadow(0 0 14px rgba(var(--phos-rgb), .16));
 }
 .hud.hidden { opacity: 0; transform: translateY(14px); pointer-events: none; }
 /* a closed panel runs no animations */
@@ -54,7 +72,7 @@
 }
 /* soft scanlines and one slow active scanline */
 .hud::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
   background: repeating-linear-gradient(to bottom, rgba(var(--ink-rgb), 0) 0, rgba(var(--ink-rgb), .34) 1.7px, rgba(var(--ink-rgb), 0) 3.4px, rgba(var(--ink-rgb), 0) 4px);
   filter: blur(.6px); opacity: .5;
 }
@@ -80,6 +98,34 @@
 }
 .hud select { background: var(--control); padding: 6px 8px; }
 .hud select option { color: var(--phos); background: var(--control); }
+/* Browsers with customizable selects draw the open menu in the panel's style:
+   a glass card, phosphor text and a green highlight instead of the system blue. */
+@supports (appearance: base-select) {
+  .hud select, .hud select::picker(select) { appearance: base-select; }
+  .hud select { display: inline-flex; align-items: center; gap: 10px; padding: 6px 8px 6px 10px; }
+  .hud select::picker-icon { color: var(--phos-dim); font-size: 9px; transition: rotate .2s ease; }
+  .hud select:open::picker-icon { rotate: 180deg; }
+  .hud select:open { border-color: var(--phos); }
+  .hud select::picker(select) {
+    margin-block: 6px; padding: 5px; max-height: min(470px, 70dvh);
+    color: var(--phos); background: rgba(3, 12, 6, .94);
+    border: 1px solid var(--phos-dim); border-radius: 10px;
+    box-shadow: 0 0 22px rgba(var(--phos-rgb), .16), 0 10px 30px rgba(0, 0, 0, .6), inset 0 0 18px rgba(var(--phos-rgb), .05);
+    scrollbar-width: thin; scrollbar-color: var(--phos-dim) transparent;
+  }
+  .hud select option {
+    display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 5px 10px 5px 8px;
+    border-radius: 6px; background: transparent; color: var(--phos);
+    font: 700 11px/1.2 var(--ui); letter-spacing: .12em; text-transform: uppercase; text-shadow: var(--glow);
+  }
+  .hud select option::checkmark { content: "▸"; width: 1ch; color: var(--phos-bright); }
+  .hud select option:not(:checked)::checkmark { visibility: hidden; }
+  .hud select option:hover, .hud select option:focus-visible {
+    background: rgba(var(--phos-rgb), .14); color: var(--phos-bright); outline: none;
+    box-shadow: inset 0 0 0 1px rgba(var(--phos-rgb), .38);
+  }
+  .hud select option:checked { color: var(--phos-bright); }
+}
 .hud button:hover, .hud .button:hover, .hud select:hover { border-color: var(--phos); color: var(--phos); text-decoration: none; }
 .hud button.primary { background: var(--phos); color: var(--ink); border-color: var(--phos); box-shadow: 0 0 16px rgba(var(--phos-rgb), .5); text-shadow: none; }
 .hud button[aria-pressed=true]:not(.primary) { border-color: var(--phos); box-shadow: 0 0 0 1px var(--phos) inset; }
@@ -135,6 +181,9 @@
 .statusline b { color: var(--phos-dim); font-weight: 700; }
 .statusline .status { margin-left: auto; color: var(--phos-bright); letter-spacing: .05em; text-transform: none; }
 .statusline .status:empty { display: none; }
+.statusline .credit { margin-left: auto; color: var(--phos-faint); text-decoration: none; }
+.statusline .credit:hover { color: var(--phos); }
+.statusline .status:not(:empty) + .credit { margin-left: 0; }
 @media (hover: none) and (pointer: coarse) { .statusline .shortcut { display: none; } }
 
 /* ---------- corner: the gear fades in only for a hovering mouse ---------- */
@@ -152,18 +201,22 @@
   border: 1px solid var(--line); color: var(--phos);
   box-shadow: 0 0 24px rgba(var(--phos-rgb), .15), inset 0 0 12px rgba(var(--phos-rgb), .06);
   opacity: 0; pointer-events: none;
-  transition: opacity .35s ease, transform .3s ease, border-color .2s ease;
+  /* The fade matches the tooltip's exit so the two leave together. */
+  transition: opacity .42s ease, transform .3s ease, border-color .2s ease;
 }
 .corner .gear svg { width: 27px; height: 27px; display: block; filter: drop-shadow(0 0 4px rgba(var(--phos-rgb), .55)); }
 .corner.active .gear { transform: rotate(60deg); }
+/* While the first-run tooltip names the corner, the gear shows beside it. */
+.corner.hinting .gear { opacity: 1; border-color: var(--phos-dim); }
 @media (hover: hover) and (pointer: fine) {
   .corner:hover .gear { opacity: 1; border-color: var(--phos); }
 }
 .corner:focus-visible { outline: none; }
 .corner:focus-visible .gear { opacity: 1; border-color: var(--phos); outline: 1px solid var(--phos); outline-offset: 2px; }
-/* Touch screens never show the gear; keyboard focus outlines the corner instead. */
+/* Touch screens show the gear only beside the first-run tooltip; keyboard
+   focus outlines the corner instead. */
 @media (hover: none) {
-  .corner .gear { display: none; }
+  .corner:focus-visible .gear { opacity: 0; outline: none; }
   .corner:focus-visible { outline: 1px solid var(--phos); outline-offset: -6px; }
 }
 

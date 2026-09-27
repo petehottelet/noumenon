@@ -15,7 +15,6 @@
 </head>
 <body>
   <canvas id="rain" aria-label="Green code rain mixing reference characters and original Smythe glyphs"></canvas>
-  <header class="chrome"><a class="wordmark" href="https://github.com/petehottelet/smythe"><img src="wordmark.svg" alt="SMYTHE" width="196" height="31"></a><span id="mode-label">Noumenon</span><a class="credit" href="THIRD_PARTY_NOTICES.md">Based on m8e / Rezmason</a></header>
   <p id="load-status" role="status">Loading the rain…</p>
   <div class="movement" role="group" aria-label="Move through the rain">
     <button type="button" data-direction="ArrowLeft" aria-label="Move left" title="Move left"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M4 1h2v2H4v1h5v2H4v1h2v2H4V7H2V3h2Z"/></svg></button>
@@ -28,21 +27,26 @@
   </button>
   <div id="corner-tip" class="tip" role="tooltip" hidden>Click/tap in this corner to open settings</div>
   <section id="hud" class="hud hidden" aria-label="Settings" aria-hidden="true" inert>
-    <div class="transport" id="transport">
-      <button type="button" id="pause" class="primary" aria-pressed="false">Pause</button>
-      <button type="button" id="mode" aria-pressed="false">Enter 3D</button>
-      <button type="button" id="reset" title="Reset viewpoint (R)">Reset view</button>
-      <button type="button" id="fullscreen" title="Fullscreen (F)">Fullscreen</button>
-      <a class="button" href="catalog.html">All glyphs</a>
+    <a class="hud-tab" href="https://github.com/petehottelet/smythe"><img src="wordmark.svg" alt="SMYTHE" width="196" height="31"></a>
+    <div class="hud-body">
+      <div class="transport" id="transport">
+        <button type="button" id="pause" class="primary" aria-pressed="false">Pause</button>
+        <button type="button" id="mode" aria-pressed="false">Enter 3D</button>
+        <button type="button" id="reset" title="Reset viewpoint (R)">Reset view</button>
+        <button type="button" id="fullscreen" title="Fullscreen (F)">Fullscreen</button>
+        <a class="button" href="catalog.html">All glyphs</a>
+      </div>
+      <div class="deck" id="settings-deck"></div>
+      <div class="statusline">
+        <span>Preset <b id="mode-read">Classic</b></span>
+        <span>Glyphs <b id="glyph-read">192 + 56</b></span>
+        <span class="key-hint">Enter 3D to explore</span>
+        <span class="shortcut">Press S to toggle settings</span>
+        <span id="settings-status" class="status" role="status" aria-live="polite"></span>
+        <a class="credit" href="THIRD_PARTY_NOTICES.md">Based on m8e / Rezmason</a>
+      </div>
     </div>
-    <div class="deck" id="settings-deck"></div>
-    <div class="statusline">
-      <span>Mode <b id="mode-read">Classic</b></span>
-      <span>Glyphs <b>192 + 56</b></span>
-      <span class="key-hint">Enter 3D to explore</span>
-      <span class="shortcut">Press S to toggle settings</span>
-      <span id="settings-status" class="status" role="status" aria-live="polite"></span>
-    </div>
+    <svg class="hud-outline" aria-hidden="true" focusable="false"><path/></svg>
   </section>
   <noscript>This preview needs JavaScript. <a href="../catalog/contact-sheet-128.png">View the current 192-glyph contact sheet.</a></noscript>
   <script src="glyphs.js"></script>

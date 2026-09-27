@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mountHud} from './hud.mjs';
+import {mountHud,folderPath} from './hud.mjs';
 import {mountSettings} from './settings.mjs';
 
 // Just enough DOM, and a manual clock, to drive the control panel in Node.
@@ -75,11 +75,12 @@ function panelWorld(){
   assert.equal(hud.isOpen(),false);assert.equal(panel.inert,true);assert.equal(panel.getAttribute('aria-hidden'),'true');
   assert.ok(panel.classList.contains('hidden'));assert.equal(corner.getAttribute('aria-expanded'),'false');
   assert.equal(corner.getAttribute('aria-label'),'Open settings');
-  // The tooltip names the corner after a beat, stays five seconds, then leaves.
-  await advance(899);assert.equal(tip.hidden,true);
-  await advance(1);assert.equal(tip.hidden,false);
-  await advance(4999);assert.equal(tip.hidden,false);assert.equal(tip.classList.contains('leaving'),false);
-  await advance(1);assert.equal(tip.classList.contains('leaving'),true);
+  // The tooltip names the corner after a beat with the gear showing, stays five
+  // seconds, then both leave together.
+  await advance(899);assert.equal(tip.hidden,true);assert.equal(corner.classList.contains('hinting'),false);
+  await advance(1);assert.equal(tip.hidden,false);assert.ok(corner.classList.contains('hinting'));
+  await advance(4999);assert.equal(tip.hidden,false);assert.equal(tip.classList.contains('leaving'),false);assert.ok(corner.classList.contains('hinting'));
+  await advance(1);assert.equal(tip.classList.contains('leaving'),true);assert.equal(corner.classList.contains('hinting'),false);
   await advance(420);assert.equal(tip.hidden,true);assert.equal(tip.classList.contains('leaving'),false);
   // A click or tap on the corner opens the panel with the pixel resolve.
   corner.dispatch('click');
@@ -95,8 +96,9 @@ function panelWorld(){
   assert.equal(document.activeElement,corner);assert.equal(panel.inert,true);assert.ok(panel.classList.contains('closing'));
   assert.equal(document.body.classList.contains('hud-open'),false);
   await advance(300);assert.ok(panel.classList.contains('hidden'));assert.equal(panel.classList.contains('closing'),false);
-  // Opening hides a visible tooltip.
-  hud.showTip();assert.equal(tip.hidden,false);hud.open();assert.ok(tip.classList.contains('leaving'));
+  // Opening hides a visible tooltip and its gear.
+  hud.showTip();assert.equal(tip.hidden,false);assert.ok(corner.classList.contains('hinting'));
+  hud.open();assert.ok(tip.classList.contains('leaving'));assert.equal(corner.classList.contains('hinting'),false);
   await advance(420);assert.equal(tip.hidden,true);hud.close();await advance(300);
   // S toggles from anywhere except text entry; held keys and modified shortcuts do not.
   document.body.focus();
@@ -116,10 +118,28 @@ function panelWorld(){
 {
   const {advance,panel,corner,tip}=panelWorld();
   const hud=mountHud({panel,corner,tip,reducedMotion:true,tipDelayMs:0,tipMs:3000});
-  await advance(0);assert.equal(tip.hidden,false);
-  hud.open();assert.equal(tip.hidden,true);assert.equal(panel.classList.contains('opening'),false);
+  await advance(0);assert.equal(tip.hidden,false);assert.ok(corner.classList.contains('hinting'));
+  hud.open();assert.equal(tip.hidden,true);assert.equal(corner.classList.contains('hinting'),false);assert.equal(panel.classList.contains('opening'),false);
   hud.close();assert.ok(panel.classList.contains('hidden'));assert.equal(panel.classList.contains('closing'),false);
   hud.showTip();await advance(3000);assert.equal(tip.hidden,true);assert.equal(tip.classList.contains('leaving'),false);
+}
+
+// The folder outline: a raised tab on the body's top edge, inside the panel box.
+{
+  const geometry={tabLeft:30,tabWidth:228,tabHeight:52};
+  const outline=folderPath(900,420,geometry);
+  assert.ok(outline.startsWith('M0 70'));assert.ok(outline.endsWith('Z'));
+  assert.ok(outline.includes('L20 52'),'the body edge runs to the left fillet');
+  assert.ok(outline.includes('L246 0'),'the tab top runs to its right corner');
+  assert.ok(outline.includes('L882 52'),'the body edge runs to its top-right corner');
+  const numbers=path=>path.match(/-?\d+(?:\.\d+)?/g).map(Number);
+  const points=path=>{const values=numbers(path);return path.replace(/[^MLAZ]/g,'').split('').flatMap(command=>command==='Z'?[]:command==='A'?[values.splice(0,7).slice(5)]:[values.splice(0,2)]);};
+  for(const [x,y] of points(outline)){assert.ok(x>=0&&x<=900&&y>=0&&y<=420);}
+  const inset=folderPath(900,420,geometry,.5);
+  assert.ok(inset.startsWith('M0.5 70'));
+  for(const [x,y] of points(inset)){assert.ok(x>=.5&&x<=899.5&&y>=.5&&y<=419.5);}
+  assert.throws(()=>folderPath(900,420,{...geometry,tabLeft:5}),/does not fit/);
+  assert.throws(()=>folderPath(NaN,420,geometry),/finite/);
 }
 
 // Live settings: controls settle, apply one rebuild at a time, and revert on failure.

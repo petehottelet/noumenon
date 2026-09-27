@@ -1,9 +1,57 @@
 import upstreamConfig from './engine/upstream-config.mjs';
 import {normalizeSettings,parseSettingsUrl,resolveSettingsSchema} from './settings.mjs';
 
-export const PRESET_IDS=['classic','operator','3d'];
+// Each preset starts from one of the renderer's three looks, then changes the
+// panel's settings. The looks keep their upstream geometry and exposure.
+export const LOOK_IDS=['classic','operator','3d'];
+const PRESET_DEFINITIONS=[
+  {id:'classic',label:'Classic',look:'classic'},
+  {id:'operator',label:'Operator',look:'operator'},
+  {id:'3d',label:'3D',look:'3d'},
+  {id:'downpour',label:'Downpour',look:'classic',values:{numColumns:150,fallSpeed:1.1,raindropLength:1.6,cycleSpeed:.06,bloomStrength:1,bloomSize:.5}},
+  {id:'zen',label:'Zen garden',look:'classic',values:{palette:'sakura',cursorColor:'#ffe3f1',numColumns:44,fallSpeed:.12,cycleSpeed:.008,raindropLength:1.2,animationSpeed:.7,bloomStrength:.9,bloomSize:.7}},
+  {id:'inferno',label:'Inferno',look:'classic',values:{palette:'fire',cursorColor:'#fff2b0',numColumns:100,fallSpeed:.8,cycleSpeed:.08,raindropLength:1.1,bloomStrength:1.4,bloomSize:.6}},
+  {id:'synthwave',label:'Synthwave',look:'classic',values:{palette:'synthwave',cursorColor:'#c9fbff',numColumns:72,slant:12,fallSpeed:.45,bloomStrength:1.2,bloomSize:.6}},
+  {id:'aurora',label:'Northern lights',look:'classic',values:{palette:'aurora',cursorColor:'#d9ffe9',numColumns:56,slant:-8,fallSpeed:.18,raindropLength:1.8,bloomStrength:1.3,bloomSize:.9}},
+  {id:'terminal',label:'Amber terminal',look:'operator',values:{palette:'amber',cursorColor:'#ffe6a8',numColumns:72,resolution:.35,bloomStrength:.5,fps:30}},
+  {id:'ghost',label:'Ghost',look:'classic',values:{palette:'monochrome',cursorColor:'#ffffff',originalMix:50,numColumns:90,fallSpeed:.45,raindropLength:.35,bloomStrength:1.6,bloomSize:.9}},
+  {id:'spectrum',label:'Spectrum',look:'classic',values:{palette:'spectrum',cursorColor:'#ffffff',numColumns:96,bloomStrength:1.1}},
+  {id:'hunter',label:'Hunter',look:'classic',values:{glyphFace:'yautja',palette:'crimson',cursorColor:'#ffd0c0',numColumns:48,fallSpeed:.4,cycleSpeed:.05,bloomStrength:1.1,bloomSize:.5}},
+  {id:'warp',label:'Warp speed',look:'3d',values:{palette:'ice',cursorColor:'#ffffff',autoTravel:true,forwardSpeed:2.5,density:1.75,fallSpeed:.9,bloomStrength:1.2}}
+];
+const PRESET_BY_ID=new Map(PRESET_DEFINITIONS.map(preset=>[preset.id,preset]));
+export const PRESET_IDS=PRESET_DEFINITIONS.map(preset=>preset.id);
+export const lookOf=id=>PRESET_BY_ID.get(id)?.look??'classic';
+export const is3dPreset=id=>lookOf(id)==='3d';
+export const presetLabel=id=>PRESET_BY_ID.get(id)?.label??'Classic';
+
 // Hue follows the user's reference screenshot; the original preset is retained.
 export const MATRIX_GREEN={hue:137/360,saturation:.8,cursor:'#a2ffd8'};
+// Body palettes recolor a look's exposure ramp. A number holds one hue or
+// saturation; a pair blends from the dimmest glyphs to the brightest.
+export const PALETTES=Object.freeze([
+  {value:'matrix',label:'Matrix green',hue:MATRIX_GREEN.hue,saturation:MATRIX_GREEN.saturation},
+  {value:'reference',label:'Reference colors'},
+  {value:'monochrome',label:'White',hue:0,saturation:0},
+  {value:'amber',label:'Amber',hue:.12,saturation:.9},
+  {value:'crimson',label:'Crimson',hue:.985,saturation:.9},
+  {value:'toxic',label:'Toxic',hue:.21,saturation:1},
+  {value:'ultraviolet',label:'Ultraviolet',hue:.76,saturation:.85},
+  {value:'sakura',label:'Sakura',hue:.93,saturation:[.8,.45]},
+  {value:'ice',label:'Ice',hue:[.61,.52],saturation:[.9,.4]},
+  {value:'fire',label:'Fire',hue:[0,.14],saturation:[1,.95]},
+  {value:'synthwave',label:'Synthwave',hue:[.92,.5],saturation:.9},
+  {value:'aurora',label:'Aurora',hue:[.8,.38],saturation:.85},
+  {value:'spectrum',label:'Spectrum',hue:[0,.8],saturation:.9}
+]);
+// Glyph faces fill the renderer's second atlas. The Smythe face mixes its 192
+// originals with the 56 classic reference glyphs; other faces draw every cell.
+export const GLYPH_FACES=Object.freeze([
+  {value:'smythe',label:'Smythe + classic',atlas:'./generated-sdf.png',grid:[16,12],count:192,pxRange:16,mixesReference:true,summary:'192 + 56'},
+  {value:'yautja',label:'Yautja',atlas:'./faces/yautja-sdf.png',grid:[13,4],count:52,pxRange:16,mixesReference:false,summary:'52 Yautja'}
+]);
+export const faceOf=value=>GLYPH_FACES.find(face=>face.value===value)??GLYPH_FACES[0];
+
 const hslToRgb=({space,values})=>{
   if(space==='rgb')return values;
   const [h,s,l]=values,a=s*Math.min(l,1-l);
@@ -11,34 +59,54 @@ const hslToRgb=({space,values})=>{
 };
 const hex=color=>'#'+hslToRgb(color).map(value=>Math.round(value*255).toString(16).padStart(2,'0')).join('');
 const rgb=value=>({space:'rgb',values:[1,3,5].map(at=>parseInt(value.slice(at,at+2),16)/255)});
+const lightness=color=>color.space==='hsl'?color.values[2]:(Math.max(...color.values)+Math.min(...color.values))/2;
+const blend=(value,t)=>Array.isArray(value)?value[0]+(value[1]-value[0])*t:value;
+
+export function recolor(ramp,palette){
+  const top=Math.max(...ramp.map(entry=>lightness(entry.color)))||1;
+  const color=l=>({space:'hsl',values:[blend(palette.hue,l/top),blend(palette.saturation,l/top),l]});
+  if(!Array.isArray(palette.hue)&&!Array.isArray(palette.saturation))return ramp.map(entry=>({color:color(lightness(entry.color)),at:entry.at}));
+  // A blend needs more stops than a ramp has, so sample the ramp's lightness evenly.
+  const stops=[...ramp].sort((a,b)=>a.at-b.at).map(entry=>({at:entry.at,l:lightness(entry.color)}));
+  const sample=at=>{
+    if(at<=stops[0].at)return stops[0].l;
+    const next=stops.findIndex(stop=>stop.at>=at);
+    if(next<0)return stops.at(-1).l;
+    const from=stops[next-1],to=stops[next];
+    return from.l+(to.l-from.l)*(at-from.at)/(to.at-from.at);
+  };
+  return Array.from({length:17},(_,index)=>({color:color(sample(index/16)),at:index/16}));
+}
 
 export const SCHEMA=resolveSettingsSchema([
-  'originalMix','numColumns',
-  {key:'palette',label:'Body palette',options:[{value:'matrix',label:'Matrix green'},{value:'reference',label:'Reference colors'},{value:'monochrome',label:'White'},{value:'amber',label:'Amber'}]},
+  {key:'glyphFace',type:'select',label:'Glyph face',group:'Look',options:GLYPH_FACES.map(({value,label})=>({value,label})),default:'smythe'},
+  {key:'originalMix',enabledWhen:v=>faceOf(v.glyphFace).mixesReference},'numColumns',
+  {key:'palette',label:'Body palette',options:PALETTES.map(({value,label})=>({value,label}))},
   'backgroundColor','cursorColor','fallSpeed','cycleSpeed','raindropLength','animationSpeed',
   'bloomStrength',{key:'bloomSize',min:0},
   {key:'cursorIntensity',type:'range',label:'Leading glyph brightness',group:'Glow',min:0,max:4,step:.1,default:2},
   'resolution','flip',{key:'rotation',step:90},'slant',
   {key:'skipIntro',type:'checkbox',label:'Start with a full rain field',group:'Motion',default:true},
-  {key:'autoTravel',group:'3D travel',help:'Applies in the 3D preset.',enabledWhen:v=>v.preset==='3d'},
-  {key:'forwardSpeed',group:'3D travel',min:0,default:.25,enabledWhen:v=>v.preset==='3d'},
-  {key:'density',type:'range',label:'3D density',group:'3D travel',min:.25,max:2,step:.25,default:1,enabledWhen:v=>v.preset==='3d'},
+  {key:'autoTravel',group:'3D travel',help:'Applies in 3D presets.',enabledWhen:v=>is3dPreset(v.preset)},
+  {key:'forwardSpeed',group:'3D travel',min:0,default:.25,enabledWhen:v=>is3dPreset(v.preset)},
+  {key:'density',type:'range',label:'3D density',group:'3D travel',min:.25,max:2,step:.25,default:1,enabledWhen:v=>is3dPreset(v.preset)},
   {key:'fps',type:'range',label:'Frame rate limit',group:'View',min:15,max:60,step:15,default:60}
 ]);
 
 export function presetValues(id='classic'){
-  const preset=PRESET_IDS.includes(id)?id:'classic',config=upstreamConfig({version:preset});
+  const preset=PRESET_BY_ID.get(id)??PRESET_BY_ID.get('classic'),config=upstreamConfig({version:preset.look});
   return normalizeSettings(SCHEMA,{
-    preset,originalMix:10,numColumns:config.numColumns,palette:'matrix',
+    preset:preset.id,glyphFace:'smythe',originalMix:10,numColumns:config.numColumns,palette:'matrix',
     backgroundColor:hex(config.backgroundColor),cursorColor:MATRIX_GREEN.cursor,
     fallSpeed:config.fallSpeed,cycleSpeed:config.cycleSpeed,raindropLength:config.raindropLength,
     animationSpeed:config.animationSpeed,bloomStrength:config.bloomStrength,bloomSize:config.bloomSize,
     cursorIntensity:config.cursorIntensity,resolution:config.resolution,flip:config.glyphFlip,
     rotation:config.glyphRotation,slant:config.slant*180/Math.PI,autoTravel:config.volumetric,
-    forwardSpeed:config.forwardSpeed,density:config.density,skipIntro:config.skipIntro,fps:config.fps
+    forwardSpeed:config.forwardSpeed,density:config.density,skipIntro:config.skipIntro,fps:config.fps,
+    ...preset.values
   });
 }
-export const PRESETS=PRESET_IDS.map(id=>({id,label:id==='3d'?'3D':id==='operator'?'Operator':'Classic',values:presetValues(id)}));
+export const PRESETS=PRESET_DEFINITIONS.map(({id,label})=>({id,label,values:presetValues(id)}));
 
 export function readConfig(url){
   const address=new URL(url),q=address.searchParams;
@@ -50,29 +118,26 @@ export function readConfig(url){
     if(q.has(oldKey)&&!q.has(newKey))q.set(newKey,q.get(oldKey));
   }
   const values=parseSettingsUrl(address.href,SCHEMA,presetValues(id),{presets:PRESETS});
-  if(values.palette==='reference'&&!q.has('cursorColor'))values.cursorColor=hex(upstreamConfig({version:id}).cursorColor);
+  if(values.palette==='reference'&&!q.has('cursorColor'))values.cursorColor=hex(upstreamConfig({version:lookOf(id)}).cursorColor);
   values.preset=id;
   return values;
 }
 
 export function engineConfig(values){
-  const id=PRESET_IDS.includes(values.preset)?values.preset:'classic';
-  const config=upstreamConfig({version:id}),base=presetValues(id),v=normalizeSettings(SCHEMA,values,base);
+  const id=PRESET_IDS.includes(values.preset)?values.preset:'classic',look=lookOf(id);
+  const config=upstreamConfig({version:look}),base=presetValues(id),v=normalizeSettings(SCHEMA,values,base),face=faceOf(v.glyphFace);
   for(const key of ['numColumns','fallSpeed','cycleSpeed','raindropLength','animationSpeed','bloomStrength','bloomSize','cursorIntensity','resolution','forwardSpeed','density','skipIntro','fps'])config[key]=v[key];
   Object.assign(config,{
     glyphMSDFURL:new URL('./reference/matrixcode_msdf.png',import.meta.url).href,
-    generatedAtlasURL:new URL('./generated-sdf.png',import.meta.url).href,
-    generatedGrid:[16,12],generatedCount:192,generatedPxRange:16,glyphMix:v.originalMix/100,
+    generatedAtlasURL:new URL(face.atlas,import.meta.url).href,
+    generatedGrid:face.grid,generatedCount:face.count,generatedPxRange:face.pxRange,
+    glyphMix:face.mixesReference?v.originalMix/100:1,
     glyphFlip:v.flip,glyphRotation:v.rotation,slant:v.slant*Math.PI/180,
-    volumetric:id==='3d',forwardSpeed:v.autoTravel?v.forwardSpeed:0,
-    backgroundColor:v.backgroundColor===base.backgroundColor?config.backgroundColor:rgb(v.backgroundColor),
+    volumetric:look==='3d',forwardSpeed:v.autoTravel?v.forwardSpeed:0,
+    backgroundColor:v.backgroundColor===hex(config.backgroundColor)?config.backgroundColor:rgb(v.backgroundColor),
     cursorColor:v.cursorColor===hex(config.cursorColor)?config.cursorColor:rgb(v.cursorColor)
   });
-  if(v.palette!=='reference'){
-    const hue=v.palette==='matrix'?MATRIX_GREEN.hue:v.palette==='amber'?.12:0;
-    const saturation=v.palette==='matrix'?MATRIX_GREEN.saturation:v.palette==='amber'?.9:0;
-    // Preserve each preset's exposure ramp; only its chromatic grade changes.
-    config.palette=config.palette.map(entry=>({color:{space:'hsl',values:[hue,saturation,entry.color.values[2]]},at:entry.at}));
-  }
+  // Preserve each look's exposure ramp; only its chromatic grade changes.
+  if(v.palette!=='reference')config.palette=recolor(config.palette,PALETTES.find(palette=>palette.value===v.palette));
   return config;
 }
