@@ -53,9 +53,10 @@
 .hud-body {
   position: relative; flex: 1 1 auto; min-height: 0;
   padding: 12px 14px 10px;
-  /* Below 1380px the centered panel reaches under the 70px corner hotspot;
-     pad its right side by the overlap so no control sits beneath it. */
-  padding-right: clamp(14px, calc(695px - 50vw), 59px);
+  /* Below about 1400px the centered panel reaches under the 70px corner
+     hotspot. The scrolling body ends left of it, so neither a control nor the
+     scrollbar sits beneath the corner. */
+  margin-right: clamp(0px, calc(702px - 50vw), 66px);
   overflow-y: auto; overscroll-behavior: contain;
   scrollbar-width: thin; scrollbar-color: var(--phos-dim) transparent;
 }
@@ -153,8 +154,13 @@
 .row label { font-size: 10px; line-height: 1.25; letter-spacing: .1em; color: var(--phos-dim); cursor: pointer; }
 .row output { font: 500 11px var(--mono); color: var(--phos-bright); text-align: right; font-variant-numeric: tabular-nums; text-transform: none; }
 .row select { width: 100%; }
-/* A narrow group puts a menu under its label, so names like Reference colors fit. */
-@container (max-width: 274px) { .row--select { grid-template-columns: 1fr; gap: 5px; } }
+/* A narrow group puts menus and sliders under their labels, so names such as
+   Reference colors fit and slider tracks keep a usable length. */
+@container (max-width: 274px) {
+  .row--select { grid-template-columns: 1fr; gap: 5px; }
+  .row--range { grid-template-columns: 1fr 46px; row-gap: 2px; }
+  .row--range label { grid-column: 1 / -1; }
+}
 .row.off { opacity: .3; }
 
 .hud input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; margin: 0; }
