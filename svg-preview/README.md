@@ -51,7 +51,9 @@ Operator; and 3D, which adds navigation. The presets are Classic, Operator,
 terminal, Ghost, Spectrum, Hunter, Warp speed, Runestones, Arcade, and
 Mainframe. Each preset only sets
 values the panel exposes, so any preset can be adjusted afterwards, and the
-3D travel controls apply to 3D and Warp speed. The glyph face, original-glyph
+3D travel controls apply to 3D and Warp speed. **Enter 3D** and **Classic view**
+switch the look but keep the glyph face, mix, palette, background, and leading
+glyph color, so a preset's colors carry across. The glyph face, original-glyph
 mix,
 columns, motion, glow, render scale, glyph transforms, travel, and supported
 colors apply live: sliders and colour pickers rebuild the scene once they
