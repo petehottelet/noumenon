@@ -2,7 +2,7 @@
 
 Noumenon is an animated screensaver and web explorer that is a demonstration project for 
 [Smythe](https://github.com/petehottelet/smythe)'s agent swarm orchestration. As a benchmark, generating runs of **192 and 256 original SVG glyphs**.
-The web explorer runs in any WebGL browser, with 13 presets on its Classic, Operator, and 3D looks, 13 body
+The web explorer runs in any WebGL browser, with 16 presets on its Classic, Operator, and 3D looks, 13 body
 palettes, and pixel-style controls. Native Windows, macOS, and Linux (X11) ports render the same SVG outlines and
 are distributed as source only.
 
@@ -74,9 +74,10 @@ WebGL-capable browser and no API key or build step.
 
 **Explorer.** Classic uses the reference's fixed 2D grid. The 3D look adds
 arrow-key travel, in the 3D and Warp speed presets; Operator is a separate
-visual look. Presets such as
-Downpour, Inferno, Synthwave, Northern lights, Hunter, and Warp speed build on
-those three looks. Settings open in a floating phosphor control panel along
+visual look. Presets such as Downpour, Inferno, Synthwave, Northern lights,
+Hunter, Runestones, Arcade, and Warp speed build on those three looks, and the
+glyph face swaps the Smythe glyphs for Yautja, Ogham, Runic, Tifinagh,
+Braille, or terminal and 8-bit type. Settings open in a floating phosphor control panel along
 the bottom of the window: click or tap the bottom-right corner, or press S.
 For a few seconds after the page loads, a tooltip points out the corner and
 the gear shows beside it; the two fade out together. Afterwards the gear
@@ -208,6 +209,7 @@ python export_native_glyphs.py
 python export_native_glyphs.py --check
 python export_generated_sdf.py --check
 python export_face_sdf.py --check
+python export_face_sdf.py --fonts FONT_DIR
 python import_reference_glyphs.py --check
 ```
 
@@ -219,8 +221,11 @@ python import_reference_glyphs.py --check
   preserves the licensed reference outlines; it does not run a generator.
 - `export_generated_sdf.py --check` binds the explorer's MSDF atlas to every
   source SVG. Rebuilding the atlas needs MSDFgen 1.13 (`--msdfgen PATH`).
-- `export_face_sdf.py` builds the Yautja face's distance-field atlas from its
-  vendored polygon source; `--check` rebuilds it in memory and compares.
+- `export_face_sdf.py --fonts FONT_DIR` builds every glyph face's
+  distance-field atlas: Yautja from its vendored polygon source, and the
+  Google Fonts faces from the pinned font files, which are build inputs and
+  not part of the repository. `--check` verifies each atlas against its
+  receipt and rebuilds every face whose source is present.
 - `import_reference_glyphs.py --check` reproduces the reference artwork files
   offline from the pinned source atlas.
 
@@ -270,7 +275,10 @@ allows neither.
 Noumenon is released under the [MIT License](LICENSE). The 192 original
 glyphs come from [Smythe](https://github.com/petehottelet/smythe), and the
 Yautja face's 52 glyphs from [Yautja](https://github.com/petehottelet/yautja),
-both under the same license and copyright.
+both under the same license and copyright. The Ogham, Runic, Tifinagh,
+Braille, Share Tech Mono, and Press Start 2P faces are distance fields
+rendered from SIL Open Font License fonts; the fonts themselves are not
+redistributed.
 
 The web explorer adapts the renderer and classic artwork from
 [m8e/matrix-rain](https://github.com/m8e/matrix-rain), a fork of

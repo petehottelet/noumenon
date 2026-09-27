@@ -48,7 +48,8 @@ measurement.
 Every preset builds on one of three looks: Classic, the default 2D effect;
 Operator; and 3D, which adds navigation. The presets are Classic, Operator,
 3D, Downpour, Zen garden, Inferno, Synthwave, Northern lights, Amber
-terminal, Ghost, Spectrum, Hunter, and Warp speed. Each preset only sets
+terminal, Ghost, Spectrum, Hunter, Warp speed, Runestones, Arcade, and
+Mainframe. Each preset only sets
 values the panel exposes, so any preset can be adjusted afterwards, and the
 3D travel controls apply to 3D and Warp speed. The glyph face, original-glyph
 mix,
@@ -68,13 +69,25 @@ palette keeps the look's exposure curve, and the leading glyph color is
 independently adjustable.
 
 **Glyph face** chooses what the rain draws. **Smythe + classic** mixes the
-192 originals with the 56 reference glyphs at the original-glyph share.
-**Yautja** draws every cell from the 52 letter glyphs of the
-[Yautja](https://github.com/petehottelet/yautja) project's default HUD, the
-same glyphs its code rain uses, so the mix slider is disabled. Each of those
-glyphs is a cluster of angled bars; the face keeps the lit bars, since the
-unlit hairline rings vanish at rain sizes. The Hunter preset pairs the face
-with Crimson.
+192 originals with the 56 reference glyphs at the original-glyph share. Every
+other face draws every cell from its own set, so the mix slider is disabled:
+
+| Face | Glyphs | Source |
+|---|---|---|
+| Cyber | The 192 Smythe originals alone | The Yautja project's name for the same catalog; it reuses `generated-sdf.png` |
+| Yautja | 52 letter glyphs of the [Yautja](https://github.com/petehottelet/yautja) default HUD, the ones its code rain draws | Vendored polygons; lit bars only, since the unlit hairline rings vanish at rain sizes |
+| Ogham | 26 letters, U+1681–U+169A, turned so the stemline runs down the column | Noto Sans Ogham |
+| Runic | 75 runes, U+16A0–U+16EA | Noto Sans Runic |
+| Tifinagh | 56 letters, U+2D30–U+2D67 | Noto Sans Tifinagh |
+| Braille | 255 dot patterns, U+2801–U+28FF | Noto Sans Symbols 2 |
+| Share Tech Mono | Digits, capitals and 14 symbols | Share Tech Mono |
+| Press Start 2P | The same 50 characters in 8-bit type | Press Start 2P |
+
+Each font face uses one scale for all of its glyphs, so marks keep their
+relative sizes and places; Ogham and Braille are fine-grained and read best
+with fewer columns. Hunter pairs Yautja with Crimson, Runestones pairs Runic
+with Amber, Arcade pairs Press Start 2P with Spectrum, and Mainframe sets
+Share Tech Mono on the Operator look.
 
 The control panel follows [hottelet.com](https://www.hottelet.com/)'s floating
 HUD: a glass folder along the bottom of the window, grouped controls in
@@ -133,12 +146,15 @@ not measured performance results.
 The original glyphs reach the GPU through `generated-sdf.png`, a multi-channel
 signed distance field atlas built from the source SVGs with MSDFgen 1.13.
 [Its receipt](generated-sdf.json) binds the atlas to every source SVG, and
-`python export_generated_sdf.py --check` verifies that binding. The Yautja
-face uses the same slot with `faces/yautja-sdf.png`, a single-channel signed
-distance field computed exactly from the lit bars of the vendored
-[polygon source](../face-sources/yautja/glyphs.json);
-[its receipt](faces/yautja-sdf.json) pins the upstream commit and file hash,
-and `python export_face_sdf.py --check` rebuilds and compares it. The
+`python export_generated_sdf.py --check` verifies that binding. The other
+faces use the same slot with atlases in `faces/`: single-channel signed
+distance fields computed exactly from each glyph rasterized at 8×. Yautja's
+comes from the vendored [polygon source](../face-sources/yautja/glyphs.json);
+the font faces come from Google Fonts files pinned by commit, Git blob and
+SHA-256 in each receipt, such as [Runic's](faces/runic-sdf.json). The fonts
+are build inputs and are not redistributed. `python export_face_sdf.py --check`
+verifies every atlas against its receipt and rebuilds each face whose source
+is present; `--fonts FONT_DIR` supplies the fonts. The
 [reference provenance](reference/provenance.json) identifies the pinned
 artwork.
 
