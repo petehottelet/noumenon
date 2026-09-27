@@ -95,19 +95,25 @@ export function mountSettings({container,schema,presets=[],presetContainer=null,
   const fields=resolveSettingsSchema(schema),document=container.ownerDocument,window=document.defaultView;
   if(new Set(presets.map(preset=>preset.id)).size!==presets.length||presets.some(preset=>!preset.id||!preset.label||!preset.values))throw new TypeError('Presets require unique ids, labels, and implemented configuration values');
   const id=`rain-settings-${++nextDeck}`,controls=new Map(),nodes=[];
+  const presetConfigs=new Map(presets.map(preset=>[preset.id,normalizeSettings(fields,preset.values)]));
   let applied=normalizeSettings(fields,initialConfig),draft={...applied},busy=false,queued=false,timer=0,destroyed=false;
+  // The applied preset is the look the renderer runs and the address keeps; the
+  // chosen preset is the menu's latest pick, which the next rebuild applies.
   let appliedPreset=initialPresetId??presets.find(preset=>preset.id===new URL(window.location.href).searchParams.get('preset'))?.id??'';
   if(appliedPreset&&!presets.some(preset=>preset.id===appliedPreset))throw new TypeError('Unknown initial preset');
+  let chosenPreset=appliedPreset;
   const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
-  let presetSelect=null;
+  let presetSelect=null,custom=null;
   if(presets.length){
     const picker=element('span','preset-picker'),label=element('label','','Preset');
     presetSelect=element('select');presetSelect.id=`${id}-preset`;label.htmlFor=presetSelect.id;
-    const custom=element('option','','Current settings');custom.value='';presetSelect.append(custom);
+    // Custom only reports that a control has left the chosen preset; it cannot be picked.
+    custom=element('option','','Custom');custom.value='';custom.disabled=true;presetSelect.append(custom);
     for(const preset of presets){const option=element('option','',preset.label);option.value=preset.id;presetSelect.append(option);}
-    presetSelect.value=appliedPreset;picker.append(label,presetSelect);(presetContainer??container).append(picker);nodes.push(picker);
+    picker.append(label,presetSelect);(presetContainer??container).append(picker);nodes.push(picker);
     presetSelect.addEventListener('change',()=>{
-      const preset=presets.find(item=>item.id===presetSelect.value);if(preset){setValues(preset.values);schedule(0);}
+      const preset=presets.find(item=>item.id===presetSelect.value);
+      if(preset){chosenPreset=preset.id;setValues(preset.values);schedule(0);}
     });
   }
   const groups=new Map();
@@ -130,7 +136,7 @@ export function mountSettings({container,schema,presets=[],presetContainer=null,
     const update=()=>{
       draft[field.key]=field.type==='checkbox'?input.checked:input.value;
       if(output)output.textContent=`${valueFor(field,input.value)}${field.unit??''}`;
-      refreshEnabled();schedule(settle);
+      refreshEnabled();refreshPresetMenu();schedule(settle);
     };
     input.addEventListener('input',update);input.addEventListener('change',update);
   }
@@ -142,29 +148,44 @@ export function mountSettings({container,schema,presets=[],presetContainer=null,
       const enabled=settingEnabled(field,config);input.disabled=!enabled;row.classList.toggle('off',!enabled);
     }
   }
+  // The menu names the chosen preset while every value it sets still matches,
+  // and shows Custom otherwise, so choosing that preset again restores it.
+  function refreshPresetMenu(){
+    if(!presetSelect)return;
+    const preset=presets.find(item=>item.id===chosenPreset),config=read();
+    const matches=Boolean(preset)&&fields.every(field=>!(field.key in preset.values)||config[field.key]===presetConfigs.get(preset.id)[field.key]);
+    custom.hidden=matches;presetSelect.value=matches?preset.id:'';
+  }
   function setValues(values){
     draft=normalizeSettings(fields,values,read());
     for(const {field,input,output} of controls.values()){
       if(field.type==='checkbox')input.checked=draft[field.key];else input.value=String(draft[field.key]);
       if(output)output.textContent=`${draft[field.key]}${field.unit??''}`;
     }
-    refreshEnabled();return read();
+    refreshEnabled();refreshPresetMenu();return read();
   }
   function schedule(delay=settleMs){if(destroyed)return;window.clearTimeout(timer);timer=window.setTimeout(commit,delay);}
   async function commit(){
     timer=0;if(destroyed)return;
     if(busy){queued=true;return;}
-    const config=read(),presetId=presetSelect?.value||null,changed=fields.filter(field=>config[field.key]!==applied[field.key]).map(field=>field.key);
-    if(!changed.length&&(presetId??'')===appliedPreset)return;
+    const config=read(),presetId=chosenPreset||null,changed=fields.filter(field=>config[field.key]!==applied[field.key]).map(field=>field.key);
+    if(!changed.length&&chosenPreset===appliedPreset)return;
     busy=true;container.setAttribute('aria-busy','true');onStatus('Applying…');
     try{
       await onApply({...config},{changed,presetId});
       applied={...config};appliedPreset=presetId??'';
-      if(syncUrl){const address=serializeSettingsUrl(window.location.href,applied,fields,{presetId});window.history.replaceState(window.history.state,'',address);}
+      // Edits that leave a preset keep it in the address, so a reload returns to the same look.
+      if(syncUrl){const address=serializeSettingsUrl(window.location.href,applied,fields,{presetId:appliedPreset||null});window.history.replaceState(window.history.state,'',address);}
       onStatus('');
     }catch(failure){
       onStatus(failure?.message||'These settings could not be applied. Try again.');
-      draft={...applied};setValues(applied);if(presetSelect)presetSelect.value=appliedPreset;
+      // Undo only this rebuild's own changes, where nothing newer replaced them;
+      // edits made while it ran stay and apply next. A newer preset pick wins.
+      if(chosenPreset===(presetId??'')){
+        const now=read(),restored={...now};
+        for(const key of changed)if(now[key]===config[key])restored[key]=applied[key];
+        chosenPreset=appliedPreset;setValues(restored);
+      }
     }finally{
       busy=false;container.removeAttribute('aria-busy');
       if(queued){queued=false;schedule(0);}

@@ -123,7 +123,8 @@ export const SCHEMA=resolveSettingsSchema([
   {key:'glyphFace',type:'select',label:'Glyph face',group:'Look',options:GLYPH_FACES.map(({value,label})=>({value,label})),default:'smythe'},
   {key:'originalMix',enabledWhen:v=>faceOf(v.glyphFace).mixesReference},'numColumns',
   {key:'palette',label:'Body palette',options:PALETTES.map(({value,label})=>({value,label}))},
-  'backgroundColor','cursorColor','fallSpeed','cycleSpeed','raindropLength','animationSpeed',
+  // Fine steps keep calm presets exact, such as Zen garden's .12 fall and .008 changes.
+  'backgroundColor','cursorColor',{key:'fallSpeed',step:.01},{key:'cycleSpeed',step:.001},'raindropLength','animationSpeed',
   'bloomStrength',{key:'bloomSize',min:0},
   {key:'cursorIntensity',type:'range',label:'Leading glyph brightness',group:'Glow',min:0,max:4,step:.1,default:2},
   'resolution','flip',{key:'rotation',step:90},'slant',
@@ -134,9 +135,10 @@ export const SCHEMA=resolveSettingsSchema([
   {key:'fps',type:'range',label:'Frame rate limit',group:'View',min:15,max:60,step:15,default:60}
 ]);
 
-export function presetValues(id='classic'){
+// The values a preset declares, before the panel's ranges and steps apply.
+export function declaredPresetValues(id='classic'){
   const preset=PRESET_BY_ID.get(id)??PRESET_BY_ID.get('classic'),config=upstreamConfig({version:preset.look});
-  return normalizeSettings(SCHEMA,{
+  return {
     preset:preset.id,glyphFace:'smythe',originalMix:10,numColumns:config.numColumns,palette:'matrix',
     backgroundColor:hex(config.backgroundColor),cursorColor:MATRIX_GREEN.cursor,
     fallSpeed:config.fallSpeed,cycleSpeed:config.cycleSpeed,raindropLength:config.raindropLength,
@@ -145,8 +147,9 @@ export function presetValues(id='classic'){
     rotation:config.glyphRotation,slant:config.slant*180/Math.PI,autoTravel:config.volumetric,
     forwardSpeed:config.forwardSpeed,density:config.density,skipIntro:config.skipIntro,fps:config.fps,
     ...preset.values
-  });
+  };
 }
+export function presetValues(id='classic'){return normalizeSettings(SCHEMA,declaredPresetValues(id));}
 export const PRESETS=PRESET_DEFINITIONS.map(({id,label})=>({id,label,values:presetValues(id)}));
 
 // Entering or leaving 3D swaps the look but keeps what the rain is made of and
