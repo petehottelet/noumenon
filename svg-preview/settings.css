@@ -38,8 +38,13 @@
   display: flex; align-items: center; height: 52px; margin-left: 30px; padding: 2px 28px 0;
   text-decoration: none;
 }
-.hud-tab img { display: block; width: 172px; height: auto; filter: drop-shadow(0 0 6px rgba(var(--phos-rgb), .35)); }
-.hud-tab:hover img { filter: drop-shadow(0 0 9px rgba(var(--phos-rgb), .6)); }
+/* The wordmark is a mask filled with the interface color, so it follows the palette. */
+.hud-tab { filter: drop-shadow(0 0 6px rgba(var(--phos-rgb), .35)); }
+.hud-tab:hover { filter: drop-shadow(0 0 9px rgba(var(--phos-rgb), .6)); }
+.hud-wordmark {
+  display: block; width: 172px; aspect-ratio: 5165 / 802; background: var(--phos);
+  -webkit-mask: url(wordmark.svg) center / contain no-repeat; mask: url(wordmark.svg) center / contain no-repeat;
+}
 .hud-tab:focus-visible { outline-offset: -8px; }
 .hud-body {
   position: relative; flex: 1 1 auto; min-height: 0;
@@ -108,7 +113,7 @@
   .hud select:open { border-color: var(--phos); }
   .hud select::picker(select) {
     margin-block: 6px; padding: 5px; max-height: min(470px, 70dvh);
-    color: var(--phos); background: rgba(3, 12, 6, .94);
+    color: var(--phos); background: rgba(var(--ink-rgb), .94);
     border: 1px solid var(--phos-dim); border-radius: 10px;
     box-shadow: 0 0 22px rgba(var(--phos-rgb), .16), 0 10px 30px rgba(0, 0, 0, .6), inset 0 0 18px rgba(var(--phos-rgb), .05);
     scrollbar-width: thin; scrollbar-color: var(--phos-dim) transparent;

@@ -1,0 +1,2598 @@
+{
+  "version": "face-sdf-v2",
+  "face": "braille",
+  "count": 255,
+  "grid": [
+    16,
+    16
+  ],
+  "cell_pixels": [
+    128,
+    128
+  ],
+  "texture_pixels": [
+    2048,
+    2048
+  ],
+  "distance_range_pixels": 16,
+  "label": "Braille",
+  "method": "Exact Euclidean distance transform of the glyph rasterized at 8x, averaged to each cell pixel",
+  "source": {
+    "kind": "font",
+    "repository": "https://github.com/google/fonts",
+    "commit": "23e54b51ddffbc7713c583748e3bd86f62b1fa4a",
+    "path": "ofl/notosanssymbols2/NotoSansSymbols2-Regular.ttf",
+    "git_blob_sha1": "caf89dd0e60e23ac39ce18da823095959d409437",
+    "sha256": "7d5fb73b7ca67a6798101741f5d280a3d016a56a197afcd4199dbb57b4b82a21",
+    "redistributed": false,
+    "license": "SIL Open Font License 1.1",
+    "license_url": "https://github.com/google/fonts/blob/23e54b51ddffbc7713c583748e3bd86f62b1fa4a/ofl/notosanssymbols2/OFL.txt"
+  },
+  "order": "row-major in the listed character order",
+  "distance_range_semantics": "full range 16 atlas pixels; -8 outside to +8 inside; boundary 0.5",
+  "channels": "RGB with equal channels; median(r,g,b) is the signed distance",
+  "fit": {
+    "union_ink_pixels": 104,
+    "per_glyph": false,
+    "quarter_turns": 0
+  },
+  "atlas_sha256": "48b92d9e090eda8e2d2148afacad38f98bb20ee5f61ab24aa68fe3ef6fe4b312",
+  "exporter_sha256": "12e07c9feb3126acd49f87b6a9f398affec7734640f461143cae8e06ee899ce8",
+  "validation": {
+    "minimum_iou_gate": 0.94,
+    "minimum_iou": 1.0,
+    "comparison": "decoded field threshold versus cell pixels at least half covered at 8x"
+  },
+  "glyphs": [
+    {
+      "character": "⠁",
+      "codepoint": "U+2801",
+      "cell": [
+        0,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 202
+    },
+    {
+      "character": "⠂",
+      "codepoint": "U+2802",
+      "cell": [
+        1,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 201
+    },
+    {
+      "character": "⠃",
+      "codepoint": "U+2803",
+      "cell": [
+        2,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 403
+    },
+    {
+      "character": "⠄",
+      "codepoint": "U+2804",
+      "cell": [
+        3,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 203
+    },
+    {
+      "character": "⠅",
+      "codepoint": "U+2805",
+      "cell": [
+        4,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⠆",
+      "codepoint": "U+2806",
+      "cell": [
+        5,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 404
+    },
+    {
+      "character": "⠇",
+      "codepoint": "U+2807",
+      "cell": [
+        6,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⠈",
+      "codepoint": "U+2808",
+      "cell": [
+        7,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 202
+    },
+    {
+      "character": "⠉",
+      "codepoint": "U+2809",
+      "cell": [
+        8,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 404
+    },
+    {
+      "character": "⠊",
+      "codepoint": "U+280A",
+      "cell": [
+        9,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 403
+    },
+    {
+      "character": "⠋",
+      "codepoint": "U+280B",
+      "cell": [
+        10,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⠌",
+      "codepoint": "U+280C",
+      "cell": [
+        11,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⠍",
+      "codepoint": "U+280D",
+      "cell": [
+        12,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⠎",
+      "codepoint": "U+280E",
+      "cell": [
+        13,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⠏",
+      "codepoint": "U+280F",
+      "cell": [
+        14,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⠐",
+      "codepoint": "U+2810",
+      "cell": [
+        15,
+        0
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 203
+    },
+    {
+      "character": "⠑",
+      "codepoint": "U+2811",
+      "cell": [
+        0,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⠒",
+      "codepoint": "U+2812",
+      "cell": [
+        1,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 404
+    },
+    {
+      "character": "⠓",
+      "codepoint": "U+2813",
+      "cell": [
+        2,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⠔",
+      "codepoint": "U+2814",
+      "cell": [
+        3,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 406
+    },
+    {
+      "character": "⠕",
+      "codepoint": "U+2815",
+      "cell": [
+        4,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⠖",
+      "codepoint": "U+2816",
+      "cell": [
+        5,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⠗",
+      "codepoint": "U+2817",
+      "cell": [
+        6,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⠘",
+      "codepoint": "U+2818",
+      "cell": [
+        7,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⠙",
+      "codepoint": "U+2819",
+      "cell": [
+        8,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⠚",
+      "codepoint": "U+281A",
+      "cell": [
+        9,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⠛",
+      "codepoint": "U+281B",
+      "cell": [
+        10,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⠜",
+      "codepoint": "U+281C",
+      "cell": [
+        11,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⠝",
+      "codepoint": "U+281D",
+      "cell": [
+        12,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⠞",
+      "codepoint": "U+281E",
+      "cell": [
+        13,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⠟",
+      "codepoint": "U+281F",
+      "cell": [
+        14,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⠠",
+      "codepoint": "U+2820",
+      "cell": [
+        15,
+        1
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 205
+    },
+    {
+      "character": "⠡",
+      "codepoint": "U+2821",
+      "cell": [
+        0,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 407
+    },
+    {
+      "character": "⠢",
+      "codepoint": "U+2822",
+      "cell": [
+        1,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 406
+    },
+    {
+      "character": "⠣",
+      "codepoint": "U+2823",
+      "cell": [
+        2,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⠤",
+      "codepoint": "U+2824",
+      "cell": [
+        3,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 408
+    },
+    {
+      "character": "⠥",
+      "codepoint": "U+2825",
+      "cell": [
+        4,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⠦",
+      "codepoint": "U+2826",
+      "cell": [
+        5,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 609
+    },
+    {
+      "character": "⠧",
+      "codepoint": "U+2827",
+      "cell": [
+        6,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⠨",
+      "codepoint": "U+2828",
+      "cell": [
+        7,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 407
+    },
+    {
+      "character": "⠩",
+      "codepoint": "U+2829",
+      "cell": [
+        8,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 609
+    },
+    {
+      "character": "⠪",
+      "codepoint": "U+282A",
+      "cell": [
+        9,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⠫",
+      "codepoint": "U+282B",
+      "cell": [
+        10,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⠬",
+      "codepoint": "U+282C",
+      "cell": [
+        11,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⠭",
+      "codepoint": "U+282D",
+      "cell": [
+        12,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⠮",
+      "codepoint": "U+282E",
+      "cell": [
+        13,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⠯",
+      "codepoint": "U+282F",
+      "cell": [
+        14,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⠰",
+      "codepoint": "U+2830",
+      "cell": [
+        15,
+        2
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 408
+    },
+    {
+      "character": "⠱",
+      "codepoint": "U+2831",
+      "cell": [
+        0,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⠲",
+      "codepoint": "U+2832",
+      "cell": [
+        1,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 609
+    },
+    {
+      "character": "⠳",
+      "codepoint": "U+2833",
+      "cell": [
+        2,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⠴",
+      "codepoint": "U+2834",
+      "cell": [
+        3,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 611
+    },
+    {
+      "character": "⠵",
+      "codepoint": "U+2835",
+      "cell": [
+        4,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 813
+    },
+    {
+      "character": "⠶",
+      "codepoint": "U+2836",
+      "cell": [
+        5,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⠷",
+      "codepoint": "U+2837",
+      "cell": [
+        6,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1014
+    },
+    {
+      "character": "⠸",
+      "codepoint": "U+2838",
+      "cell": [
+        7,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⠹",
+      "codepoint": "U+2839",
+      "cell": [
+        8,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⠺",
+      "codepoint": "U+283A",
+      "cell": [
+        9,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⠻",
+      "codepoint": "U+283B",
+      "cell": [
+        10,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⠼",
+      "codepoint": "U+283C",
+      "cell": [
+        11,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 813
+    },
+    {
+      "character": "⠽",
+      "codepoint": "U+283D",
+      "cell": [
+        12,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1015
+    },
+    {
+      "character": "⠾",
+      "codepoint": "U+283E",
+      "cell": [
+        13,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1014
+    },
+    {
+      "character": "⠿",
+      "codepoint": "U+283F",
+      "cell": [
+        14,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1216
+    },
+    {
+      "character": "⡀",
+      "codepoint": "U+2840",
+      "cell": [
+        15,
+        3
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 202
+    },
+    {
+      "character": "⡁",
+      "codepoint": "U+2841",
+      "cell": [
+        0,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 404
+    },
+    {
+      "character": "⡂",
+      "codepoint": "U+2842",
+      "cell": [
+        1,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 403
+    },
+    {
+      "character": "⡃",
+      "codepoint": "U+2843",
+      "cell": [
+        2,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⡄",
+      "codepoint": "U+2844",
+      "cell": [
+        3,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⡅",
+      "codepoint": "U+2845",
+      "cell": [
+        4,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⡆",
+      "codepoint": "U+2846",
+      "cell": [
+        5,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⡇",
+      "codepoint": "U+2847",
+      "cell": [
+        6,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⡈",
+      "codepoint": "U+2848",
+      "cell": [
+        7,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 404
+    },
+    {
+      "character": "⡉",
+      "codepoint": "U+2849",
+      "cell": [
+        8,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⡊",
+      "codepoint": "U+284A",
+      "cell": [
+        9,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⡋",
+      "codepoint": "U+284B",
+      "cell": [
+        10,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⡌",
+      "codepoint": "U+284C",
+      "cell": [
+        11,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⡍",
+      "codepoint": "U+284D",
+      "cell": [
+        12,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⡎",
+      "codepoint": "U+284E",
+      "cell": [
+        13,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⡏",
+      "codepoint": "U+284F",
+      "cell": [
+        14,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⡐",
+      "codepoint": "U+2850",
+      "cell": [
+        15,
+        4
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⡑",
+      "codepoint": "U+2851",
+      "cell": [
+        0,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⡒",
+      "codepoint": "U+2852",
+      "cell": [
+        1,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⡓",
+      "codepoint": "U+2853",
+      "cell": [
+        2,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⡔",
+      "codepoint": "U+2854",
+      "cell": [
+        3,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⡕",
+      "codepoint": "U+2855",
+      "cell": [
+        4,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⡖",
+      "codepoint": "U+2856",
+      "cell": [
+        5,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⡗",
+      "codepoint": "U+2857",
+      "cell": [
+        6,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⡘",
+      "codepoint": "U+2858",
+      "cell": [
+        7,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⡙",
+      "codepoint": "U+2859",
+      "cell": [
+        8,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⡚",
+      "codepoint": "U+285A",
+      "cell": [
+        9,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⡛",
+      "codepoint": "U+285B",
+      "cell": [
+        10,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⡜",
+      "codepoint": "U+285C",
+      "cell": [
+        11,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⡝",
+      "codepoint": "U+285D",
+      "cell": [
+        12,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⡞",
+      "codepoint": "U+285E",
+      "cell": [
+        13,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⡟",
+      "codepoint": "U+285F",
+      "cell": [
+        14,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⡠",
+      "codepoint": "U+2860",
+      "cell": [
+        15,
+        5
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 407
+    },
+    {
+      "character": "⡡",
+      "codepoint": "U+2861",
+      "cell": [
+        0,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 609
+    },
+    {
+      "character": "⡢",
+      "codepoint": "U+2862",
+      "cell": [
+        1,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⡣",
+      "codepoint": "U+2863",
+      "cell": [
+        2,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⡤",
+      "codepoint": "U+2864",
+      "cell": [
+        3,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⡥",
+      "codepoint": "U+2865",
+      "cell": [
+        4,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⡦",
+      "codepoint": "U+2866",
+      "cell": [
+        5,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⡧",
+      "codepoint": "U+2867",
+      "cell": [
+        6,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⡨",
+      "codepoint": "U+2868",
+      "cell": [
+        7,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 609
+    },
+    {
+      "character": "⡩",
+      "codepoint": "U+2869",
+      "cell": [
+        8,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⡪",
+      "codepoint": "U+286A",
+      "cell": [
+        9,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⡫",
+      "codepoint": "U+286B",
+      "cell": [
+        10,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⡬",
+      "codepoint": "U+286C",
+      "cell": [
+        11,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⡭",
+      "codepoint": "U+286D",
+      "cell": [
+        12,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1014
+    },
+    {
+      "character": "⡮",
+      "codepoint": "U+286E",
+      "cell": [
+        13,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⡯",
+      "codepoint": "U+286F",
+      "cell": [
+        14,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1215
+    },
+    {
+      "character": "⡰",
+      "codepoint": "U+2870",
+      "cell": [
+        15,
+        6
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 610
+    },
+    {
+      "character": "⡱",
+      "codepoint": "U+2871",
+      "cell": [
+        0,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⡲",
+      "codepoint": "U+2872",
+      "cell": [
+        1,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⡳",
+      "codepoint": "U+2873",
+      "cell": [
+        2,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⡴",
+      "codepoint": "U+2874",
+      "cell": [
+        3,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 813
+    },
+    {
+      "character": "⡵",
+      "codepoint": "U+2875",
+      "cell": [
+        4,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1015
+    },
+    {
+      "character": "⡶",
+      "codepoint": "U+2876",
+      "cell": [
+        5,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1014
+    },
+    {
+      "character": "⡷",
+      "codepoint": "U+2877",
+      "cell": [
+        6,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1216
+    },
+    {
+      "character": "⡸",
+      "codepoint": "U+2878",
+      "cell": [
+        7,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 812
+    },
+    {
+      "character": "⡹",
+      "codepoint": "U+2879",
+      "cell": [
+        8,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1014
+    },
+    {
+      "character": "⡺",
+      "codepoint": "U+287A",
+      "cell": [
+        9,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⡻",
+      "codepoint": "U+287B",
+      "cell": [
+        10,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1215
+    },
+    {
+      "character": "⡼",
+      "codepoint": "U+287C",
+      "cell": [
+        11,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1015
+    },
+    {
+      "character": "⡽",
+      "codepoint": "U+287D",
+      "cell": [
+        12,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1217
+    },
+    {
+      "character": "⡾",
+      "codepoint": "U+287E",
+      "cell": [
+        13,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1216
+    },
+    {
+      "character": "⡿",
+      "codepoint": "U+287F",
+      "cell": [
+        14,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1418
+    },
+    {
+      "character": "⢀",
+      "codepoint": "U+2880",
+      "cell": [
+        15,
+        7
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 200
+    },
+    {
+      "character": "⢁",
+      "codepoint": "U+2881",
+      "cell": [
+        0,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 402
+    },
+    {
+      "character": "⢂",
+      "codepoint": "U+2882",
+      "cell": [
+        1,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 401
+    },
+    {
+      "character": "⢃",
+      "codepoint": "U+2883",
+      "cell": [
+        2,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 603
+    },
+    {
+      "character": "⢄",
+      "codepoint": "U+2884",
+      "cell": [
+        3,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 403
+    },
+    {
+      "character": "⢅",
+      "codepoint": "U+2885",
+      "cell": [
+        4,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⢆",
+      "codepoint": "U+2886",
+      "cell": [
+        5,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 604
+    },
+    {
+      "character": "⢇",
+      "codepoint": "U+2887",
+      "cell": [
+        6,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⢈",
+      "codepoint": "U+2888",
+      "cell": [
+        7,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 402
+    },
+    {
+      "character": "⢉",
+      "codepoint": "U+2889",
+      "cell": [
+        8,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 604
+    },
+    {
+      "character": "⢊",
+      "codepoint": "U+288A",
+      "cell": [
+        9,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 603
+    },
+    {
+      "character": "⢋",
+      "codepoint": "U+288B",
+      "cell": [
+        10,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 805
+    },
+    {
+      "character": "⢌",
+      "codepoint": "U+288C",
+      "cell": [
+        11,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⢍",
+      "codepoint": "U+288D",
+      "cell": [
+        12,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⢎",
+      "codepoint": "U+288E",
+      "cell": [
+        13,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⢏",
+      "codepoint": "U+288F",
+      "cell": [
+        14,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⢐",
+      "codepoint": "U+2890",
+      "cell": [
+        15,
+        8
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 403
+    },
+    {
+      "character": "⢑",
+      "codepoint": "U+2891",
+      "cell": [
+        0,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⢒",
+      "codepoint": "U+2892",
+      "cell": [
+        1,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 604
+    },
+    {
+      "character": "⢓",
+      "codepoint": "U+2893",
+      "cell": [
+        2,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⢔",
+      "codepoint": "U+2894",
+      "cell": [
+        3,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⢕",
+      "codepoint": "U+2895",
+      "cell": [
+        4,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⢖",
+      "codepoint": "U+2896",
+      "cell": [
+        5,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⢗",
+      "codepoint": "U+2897",
+      "cell": [
+        6,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1009
+    },
+    {
+      "character": "⢘",
+      "codepoint": "U+2898",
+      "cell": [
+        7,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⢙",
+      "codepoint": "U+2899",
+      "cell": [
+        8,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⢚",
+      "codepoint": "U+289A",
+      "cell": [
+        9,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⢛",
+      "codepoint": "U+289B",
+      "cell": [
+        10,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⢜",
+      "codepoint": "U+289C",
+      "cell": [
+        11,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⢝",
+      "codepoint": "U+289D",
+      "cell": [
+        12,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⢞",
+      "codepoint": "U+289E",
+      "cell": [
+        13,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1009
+    },
+    {
+      "character": "⢟",
+      "codepoint": "U+289F",
+      "cell": [
+        14,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1211
+    },
+    {
+      "character": "⢠",
+      "codepoint": "U+28A0",
+      "cell": [
+        15,
+        9
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 405
+    },
+    {
+      "character": "⢡",
+      "codepoint": "U+28A1",
+      "cell": [
+        0,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⢢",
+      "codepoint": "U+28A2",
+      "cell": [
+        1,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 606
+    },
+    {
+      "character": "⢣",
+      "codepoint": "U+28A3",
+      "cell": [
+        2,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⢤",
+      "codepoint": "U+28A4",
+      "cell": [
+        3,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⢥",
+      "codepoint": "U+28A5",
+      "cell": [
+        4,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⢦",
+      "codepoint": "U+28A6",
+      "cell": [
+        5,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⢧",
+      "codepoint": "U+28A7",
+      "cell": [
+        6,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⢨",
+      "codepoint": "U+28A8",
+      "cell": [
+        7,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⢩",
+      "codepoint": "U+28A9",
+      "cell": [
+        8,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⢪",
+      "codepoint": "U+28AA",
+      "cell": [
+        9,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⢫",
+      "codepoint": "U+28AB",
+      "cell": [
+        10,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⢬",
+      "codepoint": "U+28AC",
+      "cell": [
+        11,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⢭",
+      "codepoint": "U+28AD",
+      "cell": [
+        12,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⢮",
+      "codepoint": "U+28AE",
+      "cell": [
+        13,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⢯",
+      "codepoint": "U+28AF",
+      "cell": [
+        14,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⢰",
+      "codepoint": "U+28B0",
+      "cell": [
+        15,
+        10
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 608
+    },
+    {
+      "character": "⢱",
+      "codepoint": "U+28B1",
+      "cell": [
+        0,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⢲",
+      "codepoint": "U+28B2",
+      "cell": [
+        1,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⢳",
+      "codepoint": "U+28B3",
+      "cell": [
+        2,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⢴",
+      "codepoint": "U+28B4",
+      "cell": [
+        3,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 811
+    },
+    {
+      "character": "⢵",
+      "codepoint": "U+28B5",
+      "cell": [
+        4,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⢶",
+      "codepoint": "U+28B6",
+      "cell": [
+        5,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⢷",
+      "codepoint": "U+28B7",
+      "cell": [
+        6,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1214
+    },
+    {
+      "character": "⢸",
+      "codepoint": "U+28B8",
+      "cell": [
+        7,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⢹",
+      "codepoint": "U+28B9",
+      "cell": [
+        8,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⢺",
+      "codepoint": "U+28BA",
+      "cell": [
+        9,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⢻",
+      "codepoint": "U+28BB",
+      "cell": [
+        10,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⢼",
+      "codepoint": "U+28BC",
+      "cell": [
+        11,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⢽",
+      "codepoint": "U+28BD",
+      "cell": [
+        12,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1215
+    },
+    {
+      "character": "⢾",
+      "codepoint": "U+28BE",
+      "cell": [
+        13,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1214
+    },
+    {
+      "character": "⢿",
+      "codepoint": "U+28BF",
+      "cell": [
+        14,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1416
+    },
+    {
+      "character": "⣀",
+      "codepoint": "U+28C0",
+      "cell": [
+        15,
+        11
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 402
+    },
+    {
+      "character": "⣁",
+      "codepoint": "U+28C1",
+      "cell": [
+        0,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 604
+    },
+    {
+      "character": "⣂",
+      "codepoint": "U+28C2",
+      "cell": [
+        1,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 603
+    },
+    {
+      "character": "⣃",
+      "codepoint": "U+28C3",
+      "cell": [
+        2,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 805
+    },
+    {
+      "character": "⣄",
+      "codepoint": "U+28C4",
+      "cell": [
+        3,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⣅",
+      "codepoint": "U+28C5",
+      "cell": [
+        4,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⣆",
+      "codepoint": "U+28C6",
+      "cell": [
+        5,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⣇",
+      "codepoint": "U+28C7",
+      "cell": [
+        6,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⣈",
+      "codepoint": "U+28C8",
+      "cell": [
+        7,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 604
+    },
+    {
+      "character": "⣉",
+      "codepoint": "U+28C9",
+      "cell": [
+        8,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⣊",
+      "codepoint": "U+28CA",
+      "cell": [
+        9,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 805
+    },
+    {
+      "character": "⣋",
+      "codepoint": "U+28CB",
+      "cell": [
+        10,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1007
+    },
+    {
+      "character": "⣌",
+      "codepoint": "U+28CC",
+      "cell": [
+        11,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⣍",
+      "codepoint": "U+28CD",
+      "cell": [
+        12,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1009
+    },
+    {
+      "character": "⣎",
+      "codepoint": "U+28CE",
+      "cell": [
+        13,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⣏",
+      "codepoint": "U+28CF",
+      "cell": [
+        14,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1210
+    },
+    {
+      "character": "⣐",
+      "codepoint": "U+28D0",
+      "cell": [
+        15,
+        12
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 605
+    },
+    {
+      "character": "⣑",
+      "codepoint": "U+28D1",
+      "cell": [
+        0,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⣒",
+      "codepoint": "U+28D2",
+      "cell": [
+        1,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 806
+    },
+    {
+      "character": "⣓",
+      "codepoint": "U+28D3",
+      "cell": [
+        2,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⣔",
+      "codepoint": "U+28D4",
+      "cell": [
+        3,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⣕",
+      "codepoint": "U+28D5",
+      "cell": [
+        4,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⣖",
+      "codepoint": "U+28D6",
+      "cell": [
+        5,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1009
+    },
+    {
+      "character": "⣗",
+      "codepoint": "U+28D7",
+      "cell": [
+        6,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1211
+    },
+    {
+      "character": "⣘",
+      "codepoint": "U+28D8",
+      "cell": [
+        7,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 807
+    },
+    {
+      "character": "⣙",
+      "codepoint": "U+28D9",
+      "cell": [
+        8,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1009
+    },
+    {
+      "character": "⣚",
+      "codepoint": "U+28DA",
+      "cell": [
+        9,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1008
+    },
+    {
+      "character": "⣛",
+      "codepoint": "U+28DB",
+      "cell": [
+        10,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1210
+    },
+    {
+      "character": "⣜",
+      "codepoint": "U+28DC",
+      "cell": [
+        11,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⣝",
+      "codepoint": "U+28DD",
+      "cell": [
+        12,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1212
+    },
+    {
+      "character": "⣞",
+      "codepoint": "U+28DE",
+      "cell": [
+        13,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1211
+    },
+    {
+      "character": "⣟",
+      "codepoint": "U+28DF",
+      "cell": [
+        14,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1413
+    },
+    {
+      "character": "⣠",
+      "codepoint": "U+28E0",
+      "cell": [
+        15,
+        13
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 607
+    },
+    {
+      "character": "⣡",
+      "codepoint": "U+28E1",
+      "cell": [
+        0,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⣢",
+      "codepoint": "U+28E2",
+      "cell": [
+        1,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 808
+    },
+    {
+      "character": "⣣",
+      "codepoint": "U+28E3",
+      "cell": [
+        2,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⣤",
+      "codepoint": "U+28E4",
+      "cell": [
+        3,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⣥",
+      "codepoint": "U+28E5",
+      "cell": [
+        4,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⣦",
+      "codepoint": "U+28E6",
+      "cell": [
+        5,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⣧",
+      "codepoint": "U+28E7",
+      "cell": [
+        6,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⣨",
+      "codepoint": "U+28E8",
+      "cell": [
+        7,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 809
+    },
+    {
+      "character": "⣩",
+      "codepoint": "U+28E9",
+      "cell": [
+        8,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⣪",
+      "codepoint": "U+28EA",
+      "cell": [
+        9,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1010
+    },
+    {
+      "character": "⣫",
+      "codepoint": "U+28EB",
+      "cell": [
+        10,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1212
+    },
+    {
+      "character": "⣬",
+      "codepoint": "U+28EC",
+      "cell": [
+        11,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⣭",
+      "codepoint": "U+28ED",
+      "cell": [
+        12,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1214
+    },
+    {
+      "character": "⣮",
+      "codepoint": "U+28EE",
+      "cell": [
+        13,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⣯",
+      "codepoint": "U+28EF",
+      "cell": [
+        14,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1415
+    },
+    {
+      "character": "⣰",
+      "codepoint": "U+28F0",
+      "cell": [
+        15,
+        14
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 810
+    },
+    {
+      "character": "⣱",
+      "codepoint": "U+28F1",
+      "cell": [
+        0,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⣲",
+      "codepoint": "U+28F2",
+      "cell": [
+        1,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1011
+    },
+    {
+      "character": "⣳",
+      "codepoint": "U+28F3",
+      "cell": [
+        2,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⣴",
+      "codepoint": "U+28F4",
+      "cell": [
+        3,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1013
+    },
+    {
+      "character": "⣵",
+      "codepoint": "U+28F5",
+      "cell": [
+        4,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1215
+    },
+    {
+      "character": "⣶",
+      "codepoint": "U+28F6",
+      "cell": [
+        5,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1214
+    },
+    {
+      "character": "⣷",
+      "codepoint": "U+28F7",
+      "cell": [
+        6,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1416
+    },
+    {
+      "character": "⣸",
+      "codepoint": "U+28F8",
+      "cell": [
+        7,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1012
+    },
+    {
+      "character": "⣹",
+      "codepoint": "U+28F9",
+      "cell": [
+        8,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1214
+    },
+    {
+      "character": "⣺",
+      "codepoint": "U+28FA",
+      "cell": [
+        9,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1213
+    },
+    {
+      "character": "⣻",
+      "codepoint": "U+28FB",
+      "cell": [
+        10,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1415
+    },
+    {
+      "character": "⣼",
+      "codepoint": "U+28FC",
+      "cell": [
+        11,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1215
+    },
+    {
+      "character": "⣽",
+      "codepoint": "U+28FD",
+      "cell": [
+        12,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1417
+    },
+    {
+      "character": "⣾",
+      "codepoint": "U+28FE",
+      "cell": [
+        13,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1416
+    },
+    {
+      "character": "⣿",
+      "codepoint": "U+28FF",
+      "cell": [
+        14,
+        15
+      ],
+      "source_raster_iou_at128": 1.0,
+      "ink_pixels_at128": 1618
+    }
+  ]
+}

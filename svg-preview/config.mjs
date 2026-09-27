@@ -17,7 +17,10 @@ const PRESET_DEFINITIONS=[
   {id:'ghost',label:'Ghost',look:'classic',values:{palette:'monochrome',cursorColor:'#ffffff',originalMix:50,numColumns:90,fallSpeed:.45,raindropLength:.35,bloomStrength:1.6,bloomSize:.9}},
   {id:'spectrum',label:'Spectrum',look:'classic',values:{palette:'spectrum',cursorColor:'#ffffff',numColumns:96,bloomStrength:1.1}},
   {id:'hunter',label:'Hunter',look:'classic',values:{glyphFace:'yautja',palette:'crimson',cursorColor:'#ffd0c0',numColumns:48,fallSpeed:.4,cycleSpeed:.05,bloomStrength:1.1,bloomSize:.5}},
-  {id:'warp',label:'Warp speed',look:'3d',values:{palette:'ice',cursorColor:'#ffffff',autoTravel:true,forwardSpeed:2.5,density:1.75,fallSpeed:.9,bloomStrength:1.2}}
+  {id:'warp',label:'Warp speed',look:'3d',values:{palette:'ice',cursorColor:'#ffffff',autoTravel:true,forwardSpeed:2.5,density:1.75,fallSpeed:.9,bloomStrength:1.2}},
+  {id:'runestones',label:'Runestones',look:'classic',values:{glyphFace:'runic',palette:'amber',cursorColor:'#fff1c9',numColumns:56,fallSpeed:.2,cycleSpeed:.012,raindropLength:1.4,bloomStrength:1.1,bloomSize:.7}},
+  {id:'arcade',label:'Arcade',look:'classic',values:{glyphFace:'press-start-2p',palette:'spectrum',cursorColor:'#ffffff',numColumns:64,resolution:.5,fallSpeed:.6,cycleSpeed:.06,bloomStrength:.9,fps:30}},
+  {id:'mainframe',label:'Mainframe',look:'operator',values:{glyphFace:'share-tech-mono',palette:'matrix',numColumns:96,fallSpeed:.8,cycleSpeed:.05}}
 ];
 const PRESET_BY_ID=new Map(PRESET_DEFINITIONS.map(preset=>[preset.id,preset]));
 export const PRESET_IDS=PRESET_DEFINITIONS.map(preset=>preset.id);
@@ -46,9 +49,17 @@ export const PALETTES=Object.freeze([
 ]);
 // Glyph faces fill the renderer's second atlas. The Smythe face mixes its 192
 // originals with the 56 classic reference glyphs; other faces draw every cell.
+// Cyber is the Yautja project's name for the same 192 originals, shown alone.
 export const GLYPH_FACES=Object.freeze([
   {value:'smythe',label:'Smythe + classic',atlas:'./generated-sdf.png',grid:[16,12],count:192,pxRange:16,mixesReference:true,summary:'192 + 56'},
-  {value:'yautja',label:'Yautja',atlas:'./faces/yautja-sdf.png',grid:[13,4],count:52,pxRange:16,mixesReference:false,summary:'52 Yautja'}
+  {value:'cyber',label:'Cyber',atlas:'./generated-sdf.png',grid:[16,12],count:192,pxRange:16,mixesReference:false,summary:'192 Cyber'},
+  {value:'yautja',label:'Yautja',atlas:'./faces/yautja-sdf.png',grid:[13,4],count:52,pxRange:16,mixesReference:false,summary:'52 Yautja'},
+  {value:'ogham',label:'Ogham',atlas:'./faces/ogham-sdf.png',grid:[16,2],count:26,pxRange:16,mixesReference:false,summary:'26 Ogham'},
+  {value:'runic',label:'Runic',atlas:'./faces/runic-sdf.png',grid:[16,5],count:75,pxRange:16,mixesReference:false,summary:'75 Runic'},
+  {value:'tifinagh',label:'Tifinagh',atlas:'./faces/tifinagh-sdf.png',grid:[16,4],count:56,pxRange:16,mixesReference:false,summary:'56 Tifinagh'},
+  {value:'braille',label:'Braille',atlas:'./faces/braille-sdf.png',grid:[16,16],count:255,pxRange:16,mixesReference:false,summary:'255 Braille'},
+  {value:'share-tech-mono',label:'Share Tech Mono',atlas:'./faces/share-tech-mono-sdf.png',grid:[16,4],count:50,pxRange:16,mixesReference:false,summary:'50 Share Tech Mono'},
+  {value:'press-start-2p',label:'Press Start 2P',atlas:'./faces/press-start-2p-sdf.png',grid:[16,4],count:50,pxRange:16,mixesReference:false,summary:'50 Press Start 2P'}
 ]);
 export const faceOf=value=>GLYPH_FACES.find(face=>face.value===value)??GLYPH_FACES[0];
 
@@ -76,6 +87,36 @@ export function recolor(ramp,palette){
     return from.l+(to.l-from.l)*(at-from.at)/(to.at-from.at);
   };
   return Array.from({length:17},(_,index)=>({color:color(sample(index/16)),at:index/16}));
+}
+
+// The interface takes its colors from the body palette: the dim-trail hue for
+// text, outlines and glass, the head hue for highlights. Matrix green keeps the
+// panel's designed colors; from its hue this recipe gives a near match.
+export const THEME_PROPERTIES=['--phos-rgb','--phos-bright-rgb','--ink-rgb','--phos','--phos-bright','--phos-dim','--phos-faint',
+  '--bar','--panel','--control','--ink','--rain-green','--rain-bright','--rain-dim','--rain-rule','--rain-faint','--rain-field','--rain-inverse'];
+export function interfaceTheme(values){
+  if(values.palette==='matrix')return null;
+  let palette=PALETTES.find(item=>item.value===values.palette&&item.hue!==undefined);
+  if(!palette){
+    const top=upstreamConfig({version:lookOf(values.preset)}).palette.filter(entry=>entry.color.space==='hsl').at(-1);
+    palette=top?{hue:top.color.values[0],saturation:top.color.values[1]}:{hue:MATRIX_GREEN.hue,saturation:MATRIX_GREEN.saturation};
+  }
+  const tone=t=>{const saturation=Math.min(1,blend(palette.saturation,t)*1.25);return {hue:blend(palette.hue,t),saturation,lift:1-saturation};};
+  const trail=tone(.35),head=tone(1);
+  const color=({hue},saturation,l)=>hslToRgb({space:'hsl',values:[hue,saturation,l]}).map(value=>Math.round(value*255));
+  const phos=color(trail,trail.saturation,.61+.2*trail.lift),bright=color(head,head.saturation,.81+.1*head.lift);
+  const ink=color(trail,.82*trail.saturation,.043),control=color(trail,.69*trail.saturation,.05);
+  const rgbText=channels=>`rgb(${channels.join(', ')})`,rgbaText=(channels,alpha)=>`rgba(${channels.join(', ')}, ${alpha})`;
+  return {
+    '--phos-rgb':phos.join(', '),'--phos-bright-rgb':bright.join(', '),'--ink-rgb':ink.join(', '),
+    '--phos':rgbText(phos),'--phos-bright':rgbText(bright),
+    '--phos-dim':rgbText(color(trail,.62*trail.saturation,.48+.2*trail.lift)),
+    '--phos-faint':rgbText(color(trail,.61*trail.saturation,.41+.15*trail.lift)),
+    '--bar':rgbaText(color(trail,.6*trail.saturation,.029),.84),'--panel':rgbaText(color(trail,.64*trail.saturation,.043),.5),
+    '--control':rgbText(control),'--ink':rgbText(ink),
+    '--rain-green':rgbText(phos),'--rain-bright':rgbText(bright),'--rain-dim':rgbaText(phos,.62),'--rain-rule':rgbaText(phos,.62),
+    '--rain-faint':rgbaText(phos,.26),'--rain-field':rgbText(control),'--rain-inverse':rgbText(ink)
+  };
 }
 
 export const SCHEMA=resolveSettingsSchema([
