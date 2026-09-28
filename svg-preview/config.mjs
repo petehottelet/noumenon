@@ -7,7 +7,8 @@ export const LOOK_IDS=['classic','operator','3d'];
 const PRESET_DEFINITIONS=[
   {id:'classic',label:'Classic',look:'classic'},
   {id:'operator',label:'Operator',look:'operator'},
-  {id:'3d',label:'3D',look:'3d'},
+  // The 3D look draws twice the reference's stream density.
+  {id:'3d',label:'3D',look:'3d',values:{density:2}},
   {id:'downpour',label:'Downpour',look:'classic',values:{numColumns:150,fallSpeed:1.1,raindropLength:1.6,cycleSpeed:.06,bloomStrength:1,bloomSize:.5}},
   {id:'zen',label:'Zen garden',look:'classic',values:{palette:'sakura',cursorColor:'#ffe3f1',numColumns:44,fallSpeed:.12,cycleSpeed:.008,raindropLength:1.2,animationSpeed:.7,bloomStrength:.9,bloomSize:.7}},
   {id:'inferno',label:'Inferno',look:'classic',values:{palette:'fire',cursorColor:'#fff2b0',numColumns:100,fallSpeed:.8,cycleSpeed:.08,raindropLength:1.1,bloomStrength:1.4,bloomSize:.6}},
@@ -17,7 +18,7 @@ const PRESET_DEFINITIONS=[
   {id:'ghost',label:'Ghost',look:'classic',values:{palette:'monochrome',cursorColor:'#ffffff',originalMix:50,numColumns:90,fallSpeed:.45,raindropLength:.35,bloomStrength:1.6,bloomSize:.9}},
   {id:'spectrum',label:'Spectrum',look:'classic',values:{palette:'spectrum',cursorColor:'#ffffff',numColumns:96,bloomStrength:1.1}},
   {id:'hunter',label:'Hunter',look:'classic',values:{glyphFace:'yautja',palette:'crimson',cursorColor:'#ffd0c0',numColumns:48,fallSpeed:.4,cycleSpeed:.05,bloomStrength:1.1,bloomSize:.5}},
-  {id:'warp',label:'Warp speed',look:'3d',values:{palette:'ice',cursorColor:'#ffffff',autoTravel:true,forwardSpeed:2.5,density:1.75,fallSpeed:.9,bloomStrength:1.2}},
+  {id:'warp',label:'Warp speed',look:'3d',values:{palette:'ice',cursorColor:'#ffffff',autoTravel:true,forwardSpeed:2.5,density:3.5,fallSpeed:.9,bloomStrength:1.2}},
   {id:'runestones',label:'Runestones',look:'classic',values:{glyphFace:'runic',palette:'amber',cursorColor:'#fff1c9',numColumns:56,fallSpeed:.2,cycleSpeed:.012,raindropLength:1.4,bloomStrength:1.1,bloomSize:.7}},
   {id:'arcade',label:'Arcade',look:'classic',values:{glyphFace:'press-start-2p',palette:'spectrum',cursorColor:'#ffffff',numColumns:64,resolution:.5,fallSpeed:.6,cycleSpeed:.06,bloomStrength:.9,fps:30}},
   {id:'mainframe',label:'Mainframe',look:'operator',values:{glyphFace:'share-tech-mono',palette:'matrix',numColumns:96,fallSpeed:.8,cycleSpeed:.05}}
@@ -131,7 +132,7 @@ export const SCHEMA=resolveSettingsSchema([
   {key:'skipIntro',type:'checkbox',label:'Start with a full rain field',group:'Motion',default:true},
   {key:'autoTravel',group:'3D travel',help:'Applies in 3D presets.',enabledWhen:v=>is3dPreset(v.preset)},
   {key:'forwardSpeed',group:'3D travel',min:0,default:.25,enabledWhen:v=>is3dPreset(v.preset)},
-  {key:'density',type:'range',label:'3D density',group:'3D travel',min:.25,max:2,step:.25,default:1,enabledWhen:v=>is3dPreset(v.preset)},
+  {key:'density',type:'range',label:'3D density',group:'3D travel',min:.25,max:4,step:.25,default:1,enabledWhen:v=>is3dPreset(v.preset)},
   {key:'fps',type:'range',label:'Frame rate limit',group:'View',min:15,max:60,step:15,default:60}
 ]);
 
