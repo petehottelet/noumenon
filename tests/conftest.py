@@ -12,15 +12,31 @@ if str(ROOT) not in sys.path:
 BLOCKED_PACKAGES = frozenset({"smythe", "benchmarks", "screensaver"})
 
 
+def _importer() -> str:
+    """The module name that asked for an import, past the import machinery and pytest."""
+    frame = sys._getframe(2)
+    while frame is not None and ("importlib" in frame.f_code.co_filename
+                                 or frame.f_code.co_filename.startswith("<frozen")
+                                 or frame.f_globals.get("__name__", "").startswith("_pytest")):
+        frame = frame.f_back
+    return frame.f_globals.get("__name__", "") if frame is not None else ""
+
+
 class _BlockSmythePackages:
     """Fail loudly if code under test imports Smythe's Python packages.
 
     Noumenon vendors the catalog and motion data it needs. An environment that
-    also has Smythe installed must not satisfy these imports silently.
+    also has Smythe installed must not satisfy these imports silently. The one
+    exception is the optional live glyph generator in ``live/``, which runs on
+    Smythe by design; only its modules, their tests and Smythe itself may import it.
     """
 
     def find_spec(self, name, path=None, target=None):
         if name.partition(".")[0] in BLOCKED_PACKAGES:
+            importer = _importer()
+            if name.partition(".")[0] == "smythe" and (importer.partition(".")[0] in {"live", "smythe"}
+                                                       or importer.startswith("test_live")):
+                return None
             raise ImportError(f"Noumenon must not import {name!r}")
         return None
 

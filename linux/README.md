@@ -51,7 +51,9 @@ xvfb-run -a python3 linux/smoke_linux.py \
 
 The smoke harness checks the compiled catalog hashes, all 249 contour slots,
 the blank slot, both catalog families, the measured selection mix, body/head
-colors, animation, embedding, resizing, and clean shutdown. Its independent
+colors, animation, embedding, resizing, clean shutdown, and live glyphs: the
+feed report for the fixture and edge cases, each live silhouette against its
+source SVG, drawing, and a running renderer picking up new files. Its independent
 librsvg render of the published SVG sources must match every compiled
 silhouette at an intersection-over-union of at least 0.99. It writes PNG frames
 and a JSON receipt. Bounded rendering is also available directly:
@@ -71,6 +73,29 @@ Inspect the embedded catalog without an X server:
 The diagnostic sheet uses 16 columns of 128px cells, a 4px inner margin, and
 black silhouettes on white. `--mix 0` renders only reference glyphs;
 `--mix 1` renders only originals. The normal default is `--mix 0.1`.
+
+## Live glyphs
+
+While it runs, the renderer reads new glyphs from the feed folder that
+`python -m live` writes, `$XDG_DATA_HOME/noumenon/live-feed` (normally
+`~/.local/share/noumenon/live-feed`). Every two seconds it takes the newest 256
+SVGs, reads any it has not seen, and adds them to the original family, the
+newest first; they replace the approved originals one by one. Live glyphs move
+at the originals' median speed and trail. A file that is not the generator's
+format (closed M, L and Z polygons inside the 100-unit canvas, at most 256 KiB
+and 16,000 commands), a link or a pipe is skipped.
+
+```sh
+./noumenon-linux-x86_64 --window --mix 1                      # the default feed
+./noumenon-linux-x86_64 --window --live-feed /path/to/feed    # another folder
+./noumenon-linux-x86_64 --no-live                             # the built-in catalog only
+./noumenon-linux-x86_64 --live-report /path/to/feed --live-sheet live.png
+```
+
+`NOUMENON_LIVE_FEED` also names the folder. `--live-report` prints, as JSON,
+what the folder contributes: the files considered, the glyphs read and
+rejected, and the resulting pool. Bounded `--frames` runs read a feed only when
+`--live-feed` names one, so validation stays deterministic.
 
 The [catalog record](../native-catalog.json) binds the source SVGs and
 generated native data. [Third-party notices](../svg-preview/THIRD_PARTY_NOTICES.md)

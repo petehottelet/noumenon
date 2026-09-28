@@ -49,6 +49,8 @@ jobs:
           node svg-preview/verify-config.mjs
           node svg-preview/verify-timing.mjs
           node svg-preview/verify-lifecycle.mjs
+      - name: Verify the live glyph atlas
+        run: node svg-preview/verify-live.mjs
       - name: Verify browser receipt provenance checks
         run: node svg-preview/verify-provenance.mjs
       - name: Verify browser helper process handling

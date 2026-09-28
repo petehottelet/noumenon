@@ -16,6 +16,9 @@ node_modules/
 # only; the README explains how to build each port.
 /dist/
 
+# Glyphs saved by the live generator (python -m live).
+/generated-glyphs/
+
 # Local scratch output, logs, and deployment links.
 /tmp/
 *.log

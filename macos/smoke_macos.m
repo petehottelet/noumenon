@@ -1,5 +1,7 @@
 // Exercise the compiled saver through the native ScreenSaverView contract.
-// Usage: smoke_macos BUNDLE RECEIPTS_DIRECTORY EXPECTED_NATIVE_CATALOG
+// Usage: smoke_macos BUNDLE RECEIPTS_DIRECTORY EXPECTED_NATIVE_CATALOG [FIXTURE_FEED EDGE_CASE_FEED]
+// With the two feed folders it also writes live-fixture.json and
+// live-edge_cases.json, the saver's reports for `python -m live.feedcheck check`.
 #import <AppKit/AppKit.h>
 #import <ScreenSaver/ScreenSaver.h>
 #import <CommonCrypto/CommonDigest.h>
@@ -10,6 +12,9 @@
 - (NSDictionary *)catalogDiagnostics;
 - (NSDictionary *)catalogUsage;
 - (NSImage *)catalogAtlas;
+- (void)useLiveFeed:(NSString *)folder;
+- (NSDictionary *)liveReport:(NSString *)folder;
+- (NSImage *)liveAtlas;
 @end
 
 static NSString *SHA256(NSData *data) {
@@ -189,6 +194,46 @@ static NSDictionary *CheckCatalog(Class principal, NSDictionary *resource, NSDic
              @"atlas_file": @"catalog-atlas.png", @"atlas_sha256": atlasHash};
 }
 
+static BOOL HasLiveAPI(ScreenSaverView *view) {
+    return [view respondsToSelector:@selector(useLiveFeed:)]
+        && [view respondsToSelector:@selector(liveReport:)]
+        && [view respondsToSelector:@selector(liveAtlas)];
+}
+
+// The saver reads the live feed: its report for each folder, and live glyphs drawn.
+static NSDictionary *CheckLive(Class principal, NSString *fixture, NSString *edgeFeed, NSString *out) {
+    ScreenSaverView *probe = [[principal alloc] initWithFrame:NSMakeRect(0, 0, 320, 180) isPreview:YES];
+    if (!probe || !HasLiveAPI(probe)) { return nil; }
+    NSMutableDictionary *reports = [NSMutableDictionary dictionary];
+    for (NSArray *item in @[@[@"fixture", fixture], @[@"edge_cases", edgeFeed]]) {
+        NSDictionary *report = [probe liveReport:item[1]];
+        NSData *json = report ? [NSJSONSerialization dataWithJSONObject:report
+                                                                options:NSJSONWritingSortedKeys error:NULL] : nil;
+        NSString *name = [NSString stringWithFormat:@"live-%@.json", item[0]];
+        if (!json || ![json writeToFile:[out stringByAppendingPathComponent:name] atomically:YES]) { return nil; }
+        reports[item[0]] = @{@"files": report[@"files"], @"live": report[@"live"], @"pool": report[@"pool"],
+                             @"rejected": @([report[@"rejected"] count])};
+    }
+    [probe useLiveFeed:fixture];
+    NSBitmapImageRep *atlas = AtlasBitmap([probe liveAtlas]);
+    if (!atlas || !WritePNG(atlas, out, @"live-atlas.png")) { return nil; }
+    ScreenSaverView *view = [[principal alloc] initWithFrame:NSMakeRect(0, 0, 1280, 720) isPreview:NO];
+    if (!view) { return nil; }
+    [view startAnimation];
+    for (int frame = 0; frame < 16; frame++) {
+        [NSThread sleepForTimeInterval:0.025];
+        [view animateOneFrame];
+    }
+    NSDictionary *usage = [view catalogUsage];
+    NSBitmapImageRep *frame = Capture(view);
+    NSDictionary *inspection = frame ? Inspect(frame, nil) : nil;
+    [view stopAnimation];
+    [probe useLiveFeed:nil];
+    if ([usage[@"live"] longLongValue] <= 0) { NSLog(@"Live glyphs were read but never drawn"); return nil; }
+    if (!inspection || !WritePNG(frame, out, @"live-frame.png")) { return nil; }
+    return @{@"status": @"passed", @"reports": reports, @"drawn_live": usage[@"live"], @"frame": inspection};
+}
+
 static NSDictionary *CheckMode(Class principal, BOOL preview, NSSize size, NSString *out) {
     NSString *mode = preview ? @"preview" : @"fullscreen";
     ScreenSaverView *view = [[principal alloc] initWithFrame:(NSRect){NSZeroPoint, size}
@@ -228,8 +273,8 @@ static NSDictionary *CheckMode(Class principal, BOOL preview, NSSize size, NSStr
 
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
-        if (argc != 4) {
-            NSLog(@"Usage: smoke_macos BUNDLE RECEIPTS_DIRECTORY EXPECTED_NATIVE_CATALOG");
+        if (argc != 4 && argc != 6) {
+            NSLog(@"Usage: smoke_macos BUNDLE RECEIPTS_DIRECTORY EXPECTED_NATIVE_CATALOG [FIXTURE_FEED EDGE_CASE_FEED]");
             return 2;
         }
         [NSApplication sharedApplication];
@@ -257,6 +302,10 @@ int main(int argc, const char *argv[]) {
         Class principal = bundle.principalClass;
         if (!principal || ![principal isSubclassOfClass:ScreenSaverView.class] || !expected) { return 1; }
         @try {
+            // Keep the catalog checks independent of any feed on this machine.
+            ScreenSaverView *settings = [[principal alloc] initWithFrame:NSMakeRect(0, 0, 64, 64) isPreview:YES];
+            if (!settings || !HasLiveAPI(settings)) { NSLog(@"The saver has no live feed API"); return 1; }
+            [settings useLiveFeed:nil];
             NSString *resourcePath = [bundle pathForResource:@"glyphs" ofType:@"json"];
             NSDictionary *resource = ReadJSON(resourcePath);
             NSString *resourceHash = SHA256([NSData dataWithContentsOfFile:resourcePath]);
@@ -271,6 +320,12 @@ int main(int argc, const char *argv[]) {
             NSDictionary *preview = CheckMode(principal, YES, NSMakeSize(320, 180), out);
             NSDictionary *fullscreen = CheckMode(principal, NO, NSMakeSize(1280, 720), out);
             if (!preview || !fullscreen) { return 1; }
+            NSDictionary *live = nil;
+            if (argc == 6) {
+                live = CheckLive(principal, [NSString stringWithUTF8String:argv[4]],
+                                 [NSString stringWithUTF8String:argv[5]], out);
+                if (!live) { NSLog(@"Live feed verification failed"); return 1; }
+            }
 #if defined(__arm64__)
             NSString *architecture = @"arm64";
 #elif defined(__x86_64__)
@@ -285,6 +340,7 @@ int main(int argc, const char *argv[]) {
                 @"binary_sha256": binaryHash, @"catalog_resource_sha256": resourceHash,
                 @"catalog": catalog,
                 @"checks": @[preview, fullscreen],
+                @"live": live ?: @{@"status": @"not run"},
                 @"scope": @"Loaded universal bundle bytes, exact shared catalog, all248 visible SVG shapes, blank slot, nonzero counters, weighted selections, both families in normal motion, resize, and stop"
             };
             NSData *json = [NSJSONSerialization dataWithJSONObject:receipt

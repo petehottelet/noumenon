@@ -64,7 +64,7 @@ assert.ok(ghost.palette.every(entry=>entry.color.values[1]===0));
 
 // Glyph faces: the Smythe face mixes with the reference glyphs; every other
 // face fills each cell from its own atlas and ignores the mix.
-assert.deepEqual(GLYPH_FACES.map(face=>face.value),['smythe','cyber','yautja','ogham','runic','tifinagh','braille','share-tech-mono','press-start-2p']);
+assert.deepEqual(GLYPH_FACES.map(face=>face.value),['smythe','cyber','yautja','ogham','runic','tifinagh','braille','share-tech-mono','press-start-2p','live']);
 assert.deepEqual(SCHEMA.find(field=>field.key==='glyphFace').options.map(option=>option.value),GLYPH_FACES.map(face=>face.value));
 for(const face of GLYPH_FACES){
   const config=engineConfig(readConfig(`https://example.test/?glyphFace=${face.value}&originalMix=25`));

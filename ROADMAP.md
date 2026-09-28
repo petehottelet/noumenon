@@ -14,6 +14,9 @@ release.
 
 ## Native ports
 
+- **Live glyph share.** Let the Windows and macOS savers set the original
+  family's share of cells, and with it how often live glyphs appear; the Linux
+  port has `--mix`.
 - **Native exploration modes.** Bring the web explorer's exposure pipeline, 3D
   navigation, and settings into the native savers, keep normal screensaver
   input dismissal, and verify each compiled control.

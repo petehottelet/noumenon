@@ -11,9 +11,12 @@ import os
 from pathlib import Path
 import re
 import select
+import shutil
 import signal
 import statistics
 import subprocess
+import sys
+import tempfile
 import time
 import xml.etree.ElementTree as ET
 
@@ -21,6 +24,10 @@ from PIL import Image, ImageChops
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from live import feedcheck  # noqa: E402  (standard library only)
 GLYPH_COUNT, REFERENCE_COUNT, ORIGINAL_COUNT, BLANK_INDEX = 249, 57, 192, 4
 SHEET_TILE, SHEET_COLUMNS = 128, 16
 
@@ -179,6 +186,127 @@ def compare_glyph_sheet(actual_path: Path, expected_path: Path, *, tile_size: in
             "minimum_measured_iou": min(check["source_silhouette_iou"] for check in checks),
             "actual_sha256": hashlib.sha256(actual_path.read_bytes()).hexdigest(),
             "source_sha256": hashlib.sha256(expected_path.read_bytes()).hexdigest(), "glyphs": checks}
+
+
+def live_source_sheet_svg(folder: Path, names: list[str], *, tile_size: int = SHEET_TILE,
+                          margin: float = 4) -> bytes:
+    """Live glyph source SVGs in the saver's order, on a 16 by 16 sheet."""
+    namespace = "http://www.w3.org/2000/svg"
+    size = SHEET_COLUMNS * tile_size
+    sheet = ET.Element("svg", xmlns=namespace, width=str(size), height=str(size),
+                       viewBox=f"0 0 {size} {size}")
+    ET.SubElement(sheet, "rect", width="100%", height="100%", fill="white")
+    scale = (tile_size - 2 * margin) / 100
+    for index, name in enumerate(names):
+        x, y = index % SHEET_COLUMNS * tile_size + margin, index // SHEET_COLUMNS * tile_size + margin
+        group = ET.SubElement(sheet, "g", transform=f"translate({x:g} {y:g}) scale({scale:g})")
+        for path in ET.fromstring((folder / name).read_bytes()):
+            group.append(path)
+    return ET.tostring(sheet, encoding="utf-8")
+
+
+def compare_live_sheet(actual_path: Path, expected_path: Path, count: int, *,
+                       tile_size: int = SHEET_TILE, minimum_iou: float = .99) -> dict:
+    """Every live glyph matches its source SVG; every unused tile stays empty."""
+    with Image.open(actual_path) as actual_image, Image.open(expected_path) as expected_image:
+        actual, expected = actual_image.convert("L"), expected_image.convert("L")
+    size = (tile_size * SHEET_COLUMNS,) * 2
+    if actual.size != size or expected.size != size:
+        raise AssertionError("Live sheet dimensions changed")
+    threshold = [255 if value < 128 else 0 for value in range(256)]
+    ious = []
+    for index in range(SHEET_COLUMNS * SHEET_COLUMNS):
+        x, y = index % SHEET_COLUMNS * tile_size, index // SHEET_COLUMNS * tile_size
+        box = (x, y, x + tile_size, y + tile_size)
+        ink = actual.crop(box).point(threshold, mode="1")
+        source_ink = expected.crop(box).point(threshold, mode="1")
+        union = ImageChops.logical_or(ink, source_ink).histogram()[255]
+        intersection = ImageChops.logical_and(ink, source_ink).histogram()[255]
+        if index >= count:
+            if union:
+                raise AssertionError(f"Unused live tile {index} contains geometry")
+            continue
+        if union < 20 or not intersection:
+            raise AssertionError(f"Live glyph {index} is missing its source shape")
+        ious.append(intersection / union)
+        if ious[-1] < minimum_iou:
+            raise AssertionError(f"Live glyph {index} differs from its source SVG: IoU={ious[-1]:.6f}")
+    return {"live_glyphs": count, "minimum_measured_iou": min(ious), "minimum_required_iou": minimum_iou}
+
+
+def live_counts(stdout: str) -> dict:
+    match = re.search(r"^live=(\d+) selected_live=(\d+)$", stdout, re.M)
+    if match is None:
+        raise AssertionError("Missing live glyph accounting")
+    return {"live": int(match[1]), "selected_live": int(match[2])}
+
+
+def run_live_smoke(binary: Path, out: Path, invoke) -> dict:
+    """The saver reads the live feed: the parser, drawing, selection and reloading."""
+    fixture = feedcheck.FIXTURE
+    results = {}
+    # The edge-case feed stays out of the receipts folder: it holds a pipe.
+    with tempfile.TemporaryDirectory() as scratch:
+        edge_cases = feedcheck.build(Path(scratch) / "live-feed")
+        # Links and pipes are never read, and a pipe must not block the saver.
+        os.symlink("/etc/hostname", edge_cases / "20260927T120000-000024.svg")
+        os.mkfifo(edge_cases / "20260927T120000-000025.svg")
+        for name, folder in (("fixture", fixture), ("edge_cases", edge_cases)):
+            report = json.loads(invoke("--live-report", str(folder)).stdout)
+            problems = feedcheck.compare(report, feedcheck.expect(folder))
+            if problems:
+                raise AssertionError(f"Live feed report differs ({name}): {problems}")
+            results[name] = {key: report[key] for key in ("files", "considered", "live", "rejected", "pool")}
+    sheet, source = out / "live-sheet.png", out / "source-live-sheet.png"
+    report = json.loads(invoke("--live-report", str(fixture), "--live-sheet", str(sheet)).stdout)
+    names = [glyph["name"] for glyph in report["glyphs"]]
+    render_source_sheet(live_source_sheet_svg(fixture, names), source)
+    results["sheet"] = compare_live_sheet(sheet, source, len(names))
+    invoke("--live-sheet", str(sheet), expected=2)
+
+    # A bounded run reads only a named feed, so validation stays deterministic.
+    plain = invoke("--window", "--width", "320", "--height", "240", "--seed", "42", "--mix", "1",
+                   "--frames", "1", env={**{key: value for key, value in os.environ.items()
+                                            if key != "XSCREENSAVER_WINDOW"},
+                                         "NOUMENON_LIVE_FEED": str(fixture)})
+    if live_counts(plain.stdout)["live"]:
+        raise AssertionError("A bounded run read the default live feed")
+    frame = out / "live-original-only.png"
+    rendered = invoke("--window", "--width", "640", "--height", "480", "--seed", "42", "--mix", "1",
+                      "--live-feed", str(fixture), "--frames", "40", "--snapshot", str(frame))
+    counts = live_counts(rendered.stdout)
+    if counts["live"] != len(names) or not counts["selected_live"]:
+        raise AssertionError(f"Live glyphs were not drawn: {counts}")
+    results["render"] = {**counts, "frame": inspect_frame(frame)}
+    disabled = invoke("--window", "--width", "320", "--height", "240", "--seed", "42", "--mix", "1",
+                      "--live-feed", str(fixture), "--no-live", "--frames", "1")
+    if live_counts(disabled.stdout)["live"]:
+        raise AssertionError("--no-live still read the feed")
+
+    # A running saver picks up glyphs that arrive after it starts.
+    with tempfile.TemporaryDirectory() as empty:
+        process = subprocess.Popen([str(binary), "--window", "--width", "320", "--height", "240",
+                                    "--mix", "1", "--live-feed", empty], text=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            ready, _, _ = select.select([process.stdout], [], [], 20)
+            line = process.stdout.readline() if ready else ""
+            if "live=0" not in line:
+                raise AssertionError(f"Live reload run did not start empty: {line!r}")
+            for path in sorted(fixture.glob("*.svg")):
+                shutil.copyfile(path, Path(empty) / path.name)
+            time.sleep(3)
+            process.send_signal(signal.SIGTERM)
+            stdout, stderr = process.communicate(timeout=10)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.communicate(timeout=5)
+        counts = live_counts(stdout)
+        if process.returncode != 0 or counts["live"] != len(names) or not counts["selected_live"]:
+            raise AssertionError(f"Running saver did not load new glyphs: {counts} {stderr}")
+        results["reload"] = counts
+    return results
 
 
 def selection_counts(stdout: str, expected_mix: float | None = None) -> dict:
@@ -433,6 +561,7 @@ def run_smoke(binary: Path, out: Path) -> dict:
     root_path = out / "root.png"
     invoke("-root", "--seed", "42", "--frames", "3", "--snapshot", str(root_path))
     frames["root"] = inspect_frame(root_path)
+    live = run_live_smoke(binary, out, invoke)
     receipt = {
         "status": "passed",
         "binary": binary.name,
@@ -445,13 +574,17 @@ def run_smoke(binary: Path, out: Path) -> dict:
                    "invalid_display", "invalid_window", "invalid_arguments",
                    "all_249_source_svg_silhouettes", "nonzero_fill_and_blank_slot",
                    "both_catalog_families_render", "weighted_90_10_selection",
-                   "emerald_body_mint_heads", "embedded_MIT_notice"],
+                   "emerald_body_mint_heads", "embedded_MIT_notice",
+                   "live_feed_report", "live_feed_rejections", "live_source_svg_silhouettes",
+                   "live_glyphs_drawn", "bounded_run_ignores_default_feed", "no_live",
+                   "live_feed_reload"],
         "catalog": catalog,
         "contours": contours,
         "selections": selections,
         "frames": frames,
         "embedded_framebuffer": framebuffer,
         "resized_framebuffer": resized_pixels,
+        "live": live,
     }
     (out / "verification.json").write_text(json.dumps(receipt, indent=2) + "\n",
                                            encoding="utf-8", newline="\n")
@@ -487,7 +620,8 @@ def main() -> None:
         print(json.dumps({"status": receipt["status"], "checks": receipt["checks"],
                           "catalog": receipt["catalog"],
                           "minimum_contour_iou": receipt["contours"]["minimum_measured_iou"],
-                          "frames": receipt["frames"], "selections": receipt["selections"]}, indent=2))
+                          "frames": receipt["frames"], "selections": receipt["selections"],
+                          "live": receipt["live"]}, indent=2))
     else:
         parser.error("a compiled binary or --compare-sheet is required")
 

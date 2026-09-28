@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN = {"smythe", "benchmarks", "screensaver"}
 SOURCE_DIRECTORIES = ("linux", "macos", "windows", "verification", "svg-preview", "tests")
 MODULES = ["export_glyphs", "export_native_glyphs", "export_generated_sdf", "import_reference_glyphs",
-           "svg_raster", "linux.smoke_linux", "verification.analyze_native_masks"]
+           "svg_raster", "linux.smoke_linux", "verification.analyze_native_masks", "live.feedcheck"]
 
 
 def _python_sources() -> list[Path]:
@@ -51,3 +51,35 @@ def test_every_module_imports_from_this_repository_without_smythe():
     assert not set(report["loaded"]) & FORBIDDEN
     for name, file in report["files"].items():
         assert Path(file).resolve().is_relative_to(ROOT), name
+
+
+def _imports(path: Path, *, top_level_only: bool = False) -> list[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    nodes = tree.body if top_level_only else ast.walk(tree)
+    names = []
+    for node in nodes:
+        if isinstance(node, ast.Import):
+            names += [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            names += [node.module] + [f"{node.module}.{alias.name}" for alias in node.names]
+    return names
+
+
+def test_only_the_optional_live_generator_uses_smythe_and_only_when_running():
+    # The live generator runs on Smythe by design, but imports it inside the
+    # functions that need it, so its grammar, gate and feed rules load without it.
+    live = sorted((ROOT / "live").glob("*.py"))
+    assert live
+    for path in live:
+        assert not [name for name in _imports(path, top_level_only=True)
+                    if name.partition(".")[0] in FORBIDDEN], path.name
+    assert not [name for name in _imports(ROOT / "live" / "feedcheck.py")
+                if name.partition(".")[0] not in sys.stdlib_module_names], "feedcheck must stay standard-library only"
+
+
+def test_the_core_uses_the_live_generator_only_for_the_native_feed_check():
+    for path in _python_sources():
+        if path.name.startswith("test_live") or path.name == "test_standalone.py":
+            continue
+        used = {name for name in _imports(path) if name.partition(".")[0] == "live"}
+        assert used <= {"live", "live.feedcheck"}, f"{path.relative_to(ROOT).as_posix()}: {sorted(used)}"
