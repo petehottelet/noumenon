@@ -17,10 +17,8 @@
 </div>
 
 Noumenon is an animated screensaver and web explorer that is a demonstration project for 
-[Smythe](https://github.com/petehottelet/smythe)'s agent swarm orchestration. As a benchmark, generating runs of **192 and 256 original SVG glyphs**.
-The web explorer runs in any WebGL browser, with 16 presets on its Classic, Operator, and 3D looks, 13 body
-palettes, and pixel-style controls. Native Windows, macOS, and Linux (X11) ports render the same SVG outlines and
-are distributed as source only.
+[Smythe](https://github.com/petehottelet/smythe)'s agent swarm orchestration. The benchmark generates runs of **192 and 256 original SVG glyphs**.
+The web explorer runs in any WebGL browser, distributed as source only.
 
 <p align="center">
   <img src="svg-preview/preview.gif" alt="Animated Noumenon explorer showing only the 192 original Smythe glyphs" width="900">
@@ -51,25 +49,7 @@ renders it; it does not import Smythe's Python packages.
 
 ## How it works
 
-The explorer and the native ports draw from two catalogs with separate
-provenance: the licensed reference sequence of 57 slots (56 shapes and one
-intentional blank) and the 192 originals. The default mix selects an original
-10% of the time; the other selections use the reference slots. The mix is
-weighted by catalog choice, so the larger original catalog does not dominate
-the effect.
-
-The ports fill the actual vector contours, preserving cubic curves, spacing,
-closed counters, and detached marks. GDI+, Core Graphics, and Cairo cache the
-resulting sprites. The [shared export record](native-catalog.json) binds both
-catalogs and the native data files to their source hashes. Matrix green bodies
-and mint highlights descend through three native depth layers; foreground
-glyphs are larger and brighter, and distant streams are finer and slower.
-Trail brightness depends on position within the stream, so display refresh
-rate does not accumulate glow or leave faded ghost columns.
-
-The native savers use their layered motion and host controls. The web
-explorer supplies the REGL exposure pipeline, 3D navigation, and live
-settings; those behaviors are next for native exploration modes.
+The explorer and the native ports can generate an infinite amount of new glyphs dynamically when run using the smythe framework. Alternatively, they can draw from a catalog of 248 precreated glyphs. The native savers use their layered motion and host controls. The web explorer supplies the REGL exposure pipeline, 3D navigation, and live settings; those behaviors are next for native exploration modes.
 
 ## Run the web views
 
