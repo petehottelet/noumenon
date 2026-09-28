@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/wordmark.svg" alt="NOUMENON" width="360">
-  <p><em>An animated glyph-rain screensaver and WebGL explorer, built as a demonstration of Smythe's agent swarm orchestration.</em></p>
+  <p><em>An animated "never ending" code rain screensaver that uses Smythe's agent swarm orchestration to generate a completely unique experience every time.</em></p>
   <p>
     <a href="https://github.com/petehottelet/noumenon/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush"><img src="https://github.com/petehottelet/noumenon/actions/workflows/ci.yml/badge.svg?branch=main&amp;event=push" alt="CI status on main"></a>
     <a href="https://noumenon-six.vercel.app/svg-preview/"><img src="assets/badges/explorer.svg" alt="Live explorer"></a>
