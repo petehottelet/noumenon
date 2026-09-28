@@ -11,15 +11,23 @@
 //     /p <hwnd>   render inside the settings-dialog preview window
 //     /c          show the about box (no settings)
 //     /w          run in a resizable window (debugging)
+//     /live-report <folder> <report.json>
+//                 describe the live glyphs a feed folder holds, as JSON
+//
+// While it runs, the saver reads new glyphs from the live feed folder that
+// `python -m live` writes (%LOCALAPPDATA%\Noumenon\live-feed, or the folder
+// named by NOUMENON_LIVE_FEED) and mixes them into the original family.
 
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 [assembly: AssemblyTitle("Noumenon")]
@@ -37,6 +45,16 @@ namespace Noumenon
             Application.EnableVisualStyles();
             string mode = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "/c";
             long handle;
+            if (mode == "/live-report" && args.Length > 2)
+            {
+                LiveGlyphs.Use(args[1]);
+                File.WriteAllText(args[2], LiveGlyphs.Report() + "\n", new UTF8Encoding(false));
+                return;
+            }
+            if (mode.StartsWith("/p") || mode == "/s" || mode == "/w")
+            {
+                LiveGlyphs.Use(LiveGlyphs.DefaultFolder());
+            }
             if (mode.StartsWith("/p") && args.Length > 1 && long.TryParse(args[1], out handle))
             {
                 RunPreview(new IntPtr(handle));
@@ -186,6 +204,7 @@ namespace Noumenon
             DateTime now = DateTime.UtcNow;
             float dt = Math.Min(0.05f, (float)(now - _lastTick).TotalSeconds);
             _lastTick = now;
+            LiveGlyphs.Poll();
             DrawFrame(dt);
             Invalidate();
         }
@@ -264,18 +283,24 @@ namespace Noumenon
         private readonly int _pad;
         private readonly float _speed;
         private readonly ImageAttributes[] _opacity = new ImageAttributes[16];
+        private readonly int[] _liveGeneration = new int[LiveGlyphs.Max];
+        private readonly int _cell;
+        private readonly float _level;
         internal long DrawnReference;
         internal long DrawnOriginal;
         internal long DrawnBlank;
+        internal long DrawnLive;
 
         internal Layer(float cellF, float spacing, float speed, float level,
                        int width, int height, Random random)
         {
             int cell = Math.Max(6, (int)Math.Round(cellF));
+            _cell = cell;
+            _level = level;
             _speed = speed;
             _pad = Math.Max(3, cell / 2);
-            _trail = new Bitmap[GlyphData.Count];
-            _head = new Bitmap[GlyphData.Count];
+            _trail = new Bitmap[GlyphData.Count + LiveGlyphs.Max];
+            _head = new Bitmap[GlyphData.Count + LiveGlyphs.Max];
             for (int alpha = 0; alpha < _opacity.Length; alpha++)
             {
                 _opacity[alpha] = new ImageAttributes();
@@ -305,10 +330,10 @@ namespace Noumenon
             column.Seed = random.Next();
             column.Glyph = CatalogSelector.Select(column.Seed, 0, 0);
             column.Phase = random.Next(1000);
-            column.Rate = (float)GlyphData.Speeds[column.Glyph] * 5.6f * _speed;
+            column.Rate = (float)LiveGlyphs.Speed(column.Glyph) * 5.6f * _speed;
             column.Accumulator = (float)random.NextDouble();
             column.Y = initial
-                ? (int)(random.NextDouble() * (height + GlyphData.Trails[column.Glyph] * _step))
+                ? (int)(random.NextDouble() * (height + LiveGlyphs.Trail(column.Glyph) * _step))
                 : -_step * random.Next(7);
             column.Burst = !initial && random.NextDouble() < 0.06 ? 1.6f : 0;
         }
@@ -324,13 +349,13 @@ namespace Noumenon
                     column.Accumulator -= 1f;
                     column.Y += _step;
                     column.Phase++;
-                    if (column.Y - GlyphData.Trails[column.Glyph] * _step * 1.15f > height
+                    if (column.Y - LiveGlyphs.Trail(column.Glyph) * _step * 1.15f > height
                         && random.NextDouble() < 0.6)
                     {
                         Reset(column, random, height, false);
                     }
                 }
-                int length = (int)Math.Round(GlyphData.Trails[column.Glyph] * 1.15f);
+                int length = (int)Math.Round(LiveGlyphs.Trail(column.Glyph) * 1.15f);
                 for (int tail = length; tail >= 0; tail--)
                 {
                     int y = column.Y - tail * _step;
@@ -341,11 +366,12 @@ namespace Noumenon
                     if (glyph == GlyphData.BlankIndex) { DrawnBlank++; continue; }
                     if (glyph < GlyphData.OriginalOffset) { DrawnReference++; }
                     else { DrawnOriginal++; }
+                    if (glyph >= GlyphData.Count) { DrawnLive++; }
                     float near = 1f - tail / (float)length;
                     float shimmer = 0.75f + (glyph % 5) * 0.0625f;
                     int alpha = tail == 0 ? 15
                         : (int)Math.Round((0.25 + 0.75 * Math.Sqrt(near)) * shimmer * 15);
-                    Bitmap sprite = tail == 0 ? _head[glyph] : _trail[glyph];
+                    Bitmap sprite = Sprite(glyph, tail == 0);
                     graphics.DrawImage(sprite,
                         new Rectangle(column.X - _pad, y - _pad, sprite.Width, sprite.Height),
                         0, 0, sprite.Width, sprite.Height, GraphicsUnit.Pixel, _opacity[alpha]);
@@ -353,11 +379,30 @@ namespace Noumenon
             }
         }
 
+        // A live slot's sprites are drawn the first time it appears and redrawn
+        // whenever the slot receives a newer glyph.
+        private Bitmap Sprite(int glyph, bool head)
+        {
+            if (glyph >= GlyphData.Count)
+            {
+                int slot = glyph - GlyphData.Count, generation = LiveGlyphs.Generation(slot);
+                if (_liveGeneration[slot] != generation || _trail[glyph] == null)
+                {
+                    if (_trail[glyph] != null) { _trail[glyph].Dispose(); }
+                    if (_head[glyph] != null) { _head[glyph].Dispose(); }
+                    _trail[glyph] = Sprites.Render(glyph, _cell, _pad, _level, false);
+                    _head[glyph] = Sprites.Render(glyph, _cell, _pad, _level, true);
+                    _liveGeneration[slot] = generation;
+                }
+            }
+            return head ? _head[glyph] : _trail[glyph];
+        }
+
         public void Dispose()
         {
             foreach (ImageAttributes opacity in _opacity) { opacity.Dispose(); }
-            foreach (Bitmap bitmap in _trail) { bitmap.Dispose(); }
-            foreach (Bitmap bitmap in _head) { bitmap.Dispose(); }
+            foreach (Bitmap bitmap in _trail) { if (bitmap != null) { bitmap.Dispose(); } }
+            foreach (Bitmap bitmap in _head) { if (bitmap != null) { bitmap.Dispose(); } }
         }
     }
 
@@ -384,7 +429,7 @@ namespace Noumenon
                 uint hash = Mix((uint)seed ^ ((uint)row * 0x9e3779b9u) ^ ((uint)epoch * 0x85ebca6bu));
                 uint index = Mix(hash ^ 0xa511e9b3u);
                 return hash % 10000 < (uint)(GlyphData.OriginalShare * 10000)
-                    ? GlyphData.OriginalOffset + (int)(index % (uint)GlyphData.OriginalCount)
+                    ? LiveGlyphs.Original(index)
                     : (int)(index % (uint)GlyphData.ReferenceCount);
             }
         }
@@ -397,7 +442,7 @@ namespace Noumenon
         private const int RasterScale = 4;
         internal static GraphicsPath BuildPath(int glyph)
         {
-            return BuildPath(GlyphData.Commands[glyph]);
+            return BuildPath(LiveGlyphs.Commands(glyph));
         }
 
         internal static GraphicsPath BuildPath(double[][] commands)
@@ -524,6 +569,317 @@ namespace Noumenon
             double m = lightness - chroma / 2;
             return Color.FromArgb(255, (int)Math.Round(m * 255),
                 (int)Math.Round((chroma + m) * 255), (int)Math.Round((secondary + m) * 255));
+        }
+    }
+
+    /// <summary>
+    /// Live glyphs: the newest SVGs that <c>python -m live</c> writes to the feed
+    /// folder join the original family while the saver runs. As in the web
+    /// explorer they fill the pool beside the 192 approved originals and then
+    /// replace them one by one, so up to 256 originals are in play and the
+    /// newest are always among them. Every native port reads a feed with the
+    /// same rules and describes it with the same report.
+    /// </summary>
+    internal static class LiveGlyphs
+    {
+        internal const int Max = 256, Pool = 256, FileBytes = 262144, MaxCommands = 16000,
+            NameLimit = 96, Listed = 65536;
+        private const double ScanSeconds = 2.0;
+        private const string NumberCharacters = "0123456789.+-eE";
+        private sealed class Entry { internal string Name; internal double[][] Commands; internal int Generation; }
+        private static readonly Entry[] Slots = new Entry[Max];
+        private static int[] _order = new int[0];
+        private static int _generation, _files, _considered;
+        private static DateTime _nextScan = DateTime.MinValue;
+        private static string _folder;
+        internal static readonly double MedianSpeed;
+        internal static readonly int MedianTrail;
+
+        static LiveGlyphs()
+        {
+            // Live glyphs move at the approved originals' median speed and trail.
+            var speeds = new double[GlyphData.OriginalCount];
+            var trails = new double[GlyphData.OriginalCount];
+            for (int i = 0; i < GlyphData.OriginalCount; i++)
+            {
+                speeds[i] = GlyphData.Speeds[GlyphData.OriginalOffset + i];
+                trails[i] = GlyphData.Trails[GlyphData.OriginalOffset + i];
+            }
+            MedianSpeed = Median(speeds);
+            MedianTrail = (int)Math.Floor(Median(trails) + 0.5);
+        }
+
+        private static double Median(double[] values)
+        {
+            Array.Sort(values);
+            int middle = values.Length / 2;
+            return values.Length % 2 == 1 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+        }
+
+        internal static int Count { get { return _order.Length; } }
+        internal static int ApprovedInPool
+        {
+            get { return Count < Pool - GlyphData.OriginalCount ? GlyphData.OriginalCount : Pool - Count; }
+        }
+
+        /// <summary>The newest live glyphs first, then the approved originals that remain.</summary>
+        internal static int Original(uint index)
+        {
+            int[] order = _order;
+            int approved = order.Length < Pool - GlyphData.OriginalCount ? GlyphData.OriginalCount : Pool - order.Length;
+            index %= (uint)(order.Length + approved);
+            if (index < (uint)order.Length) { return GlyphData.Count + order[index]; }
+            return GlyphData.OriginalOffset + GlyphData.OriginalCount - approved + (int)(index - (uint)order.Length);
+        }
+
+        internal static double Speed(int glyph) { return glyph < GlyphData.Count ? GlyphData.Speeds[glyph] : MedianSpeed; }
+        internal static int Trail(int glyph) { return glyph < GlyphData.Count ? GlyphData.Trails[glyph] : MedianTrail; }
+        internal static double[][] Commands(int glyph)
+        {
+            return glyph < GlyphData.Count ? GlyphData.Commands[glyph] : Slots[glyph - GlyphData.Count].Commands;
+        }
+        internal static int Generation(int slot) { return Slots[slot] == null ? 0 : Slots[slot].Generation; }
+
+        /// <summary>The per-user folder the generator writes by default.</summary>
+        internal static string DefaultFolder()
+        {
+            string chosen = Environment.GetEnvironmentVariable("NOUMENON_LIVE_FEED");
+            if (!string.IsNullOrEmpty(chosen))
+            {
+                if (chosen == "~" || chosen.StartsWith("~/", StringComparison.Ordinal) ||
+                    chosen.StartsWith("~\\", StringComparison.Ordinal))
+                    return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + chosen.Substring(1);
+                return chosen;
+            }
+            string local = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+            if (string.IsNullOrEmpty(local)) { local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData); }
+            return Path.Combine(local, "Noumenon", "live-feed");
+        }
+
+        /// <summary>Read live glyphs from this folder from now on; null shows none.</summary>
+        internal static void Use(string folder)
+        {
+            Array.Clear(Slots, 0, Slots.Length);
+            _order = new int[0];
+            _files = _considered = 0;
+            _folder = folder;
+            _nextScan = DateTime.UtcNow.AddSeconds(ScanSeconds);
+            Scan();
+        }
+
+        internal static void Poll()
+        {
+            if (_folder == null || DateTime.UtcNow < _nextScan) { return; }
+            _nextScan = DateTime.UtcNow.AddSeconds(ScanSeconds);
+            Scan();
+        }
+
+        /// <summary>
+        /// Bring the live set up to date with the newest files in the feed. A glyph
+        /// is read once, while its file stays among the newest; a file that fails
+        /// validation is skipped. Returns true when the set changed.
+        /// </summary>
+        internal static bool Scan()
+        {
+            if (_folder == null) { return false; }
+            var names = new List<string>();
+            try
+            {
+                foreach (FileSystemInfo entry in new DirectoryInfo(_folder).EnumerateFileSystemInfos())
+                {
+                    if (!ValidName(entry.Name)) { continue; }
+                    names.Add(entry.Name);
+                    if (names.Count >= Listed) { break; }
+                }
+            }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+            catch (System.Security.SecurityException) { return false; }
+            names.Sort(StringComparer.Ordinal);
+            names.Reverse();
+            int window = Math.Min(names.Count, Max);
+            var wanted = new HashSet<string>(names.GetRange(0, window), StringComparer.Ordinal);
+            var known = new HashSet<string>(StringComparer.Ordinal);
+            bool changed = false;
+            for (int slot = 0; slot < Max; slot++)
+            {
+                if (Slots[slot] == null) { continue; }
+                if (wanted.Contains(Slots[slot].Name)) { known.Add(Slots[slot].Name); }
+                else { Slots[slot] = null; changed = true; }
+            }
+            for (int i = 0; i < window; i++)
+            {
+                if (known.Contains(names[i])) { continue; }
+                int slot = Array.IndexOf(Slots, null);
+                if (slot < 0) { break; }
+                Slots[slot] = new Entry { Name = names[i], Commands = Read(Path.Combine(_folder, names[i])),
+                                          Generation = ++_generation };
+                changed = true;
+            }
+            _files = names.Count;
+            _considered = window;
+            var order = new List<int>();
+            for (int slot = 0; slot < Max; slot++)
+                if (Slots[slot] != null && Slots[slot].Commands != null) { order.Add(slot); }
+            order.Sort((a, b) => string.CompareOrdinal(Slots[b].Name, Slots[a].Name));
+            _order = order.ToArray();
+            return changed;
+        }
+
+        /// <summary>Feed names sort in arrival order; anything else in the folder is ignored.</summary>
+        internal static bool ValidName(string name)
+        {
+            if (name.Length < 5 || name.Length >= NameLimit || name[0] == '.' ||
+                !name.EndsWith(".svg", StringComparison.Ordinal)) { return false; }
+            foreach (char c in name)
+            {
+                if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                      c == '-' || c == '_' || c == '.')) { return false; }
+            }
+            return true;
+        }
+
+        private static double[][] Read(string path)
+        {
+            try
+            {
+                // Regular files only: never follow a link.
+                var info = new FileInfo(path);
+                if ((info.Attributes & (FileAttributes.ReparsePoint | FileAttributes.Directory | FileAttributes.Device)) != 0 ||
+                    info.Length <= 0 || info.Length > FileBytes) { return null; }
+                byte[] data = new byte[info.Length];
+                int total = 0;
+                // Share delete so the generator can replace or prune the file meanwhile.
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                                                   FileShare.ReadWrite | FileShare.Delete))
+                {
+                    if (stream.Length != data.Length) { return null; }
+                    while (total < data.Length)
+                    {
+                        int got = stream.Read(data, total, data.Length - total);
+                        if (got <= 0) { break; }
+                        total += got;
+                    }
+                }
+                return total == data.Length ? Parse(data) : null;
+            }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+
+        /// <summary>
+        /// The generator's format: 100-unit SVGs whose black nonzero paths are closed
+        /// polygons in absolute M, L and Z commands, every point inside the canvas.
+        /// </summary>
+        internal static double[][] Parse(byte[] data)
+        {
+            if (data.Length == 0 || data.Length > FileBytes) { return null; }
+            int end = Array.IndexOf(data, (byte)0);
+            string text = Encoding.GetEncoding(28591).GetString(data, 0, end < 0 ? data.Length : end);
+            if (!text.StartsWith("<svg", StringComparison.Ordinal) || text.Contains("<!") || text.Contains("<?") ||
+                !text.Contains(" viewBox=\"0 0 100 100\"") || text.Contains("evenodd")) { return null; }
+            var commands = new List<double[]>();
+            int contours = 0;
+            var pair = new double[2];
+            for (int cursor = 0; ; )
+            {
+                int start = text.IndexOf("<path", cursor, StringComparison.Ordinal);
+                if (start < 0) { break; }
+                int close = text.IndexOf('>', start), at = text.IndexOf(" d=\"", start, StringComparison.Ordinal);
+                if (close < 0 || at < 0 || at > close) { return null; }
+                at += 4;
+                int stop = text.IndexOf('"', at);
+                if (stop < 0 || stop > close) { return null; }
+                bool open = false;
+                int points = 0, pending = 0;
+                char command = '\0';
+                for (int p = at; p < stop; )
+                {
+                    char c = text[p];
+                    if (c == ' ' || c == ',' || c == '\t' || c == '\n' || c == '\r') { p++; continue; }
+                    if (c == 'M' || c == 'L' || c == 'Z')
+                    {
+                        if (pending != 0) { return null; }  // a coordinate needs both of its numbers
+                        if (c == 'Z')
+                        {
+                            if (!open || points < 3 || commands.Count >= MaxCommands) { return null; }
+                            commands.Add(new double[] { 3 });
+                            open = false; points = 0; command = '\0'; contours++;
+                        }
+                        else { command = c; }
+                        p++;
+                        continue;
+                    }
+                    // A number is a whole run of number characters.
+                    int span = p;
+                    while (span < stop && NumberCharacters.IndexOf(text[span]) >= 0) { span++; }
+                    double value;
+                    if (span == p || !double.TryParse(text.Substring(p, span - p),
+                            NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
+                            CultureInfo.InvariantCulture, out value) ||
+                        double.IsNaN(value) || double.IsInfinity(value) || value < 0 || value > 100) { return null; }
+                    p = span;
+                    pair[pending++] = value;
+                    if (pending < 2) { continue; }
+                    pending = 0;
+                    if (commands.Count >= MaxCommands) { return null; }
+                    if (command == 'M' && !open)
+                    {
+                        commands.Add(new double[] { 0, pair[0], pair[1] });
+                        open = true; points = 1; command = 'L';
+                    }
+                    else if (command == 'L' && open)
+                    {
+                        commands.Add(new double[] { 1, pair[0], pair[1] });
+                        points++;
+                    }
+                    else { return null; }
+                }
+                if (pending != 0 || open) { return null; }
+                cursor = close;
+            }
+            return contours == 0 ? null : commands.ToArray();
+        }
+
+        /// <summary>A JSON account of the feed, for tests and for checking a feed folder.</summary>
+        internal static string Report()
+        {
+            var rejected = new List<string>();
+            for (int slot = 0; slot < Max; slot++)
+                if (Slots[slot] != null && Slots[slot].Commands == null) { rejected.Add(Slots[slot].Name); }
+            rejected.Sort(StringComparer.Ordinal);
+            rejected.Reverse();
+            var json = new StringBuilder();
+            json.Append("{\"version\":\"native-live-feed-v1\",\"files\":").Append(_files)
+                .Append(",\"considered\":").Append(_considered).Append(",\"live\":").Append(Count)
+                .Append(",\"approved_in_pool\":").Append(ApprovedInPool)
+                .Append(",\"pool\":").Append(Count + ApprovedInPool)
+                .Append(",\"speed\":").Append(MedianSpeed.ToString("R", CultureInfo.InvariantCulture))
+                .Append(",\"trail\":").Append(MedianTrail).Append(",\"rejected\":[");
+            for (int i = 0; i < rejected.Count; i++) { json.Append(i > 0 ? "," : "").Append('"').Append(rejected[i]).Append('"'); }
+            json.Append("],\"glyphs\":[");
+            for (int i = 0; i < _order.Length; i++)
+            {
+                Entry entry = Slots[_order[i]];
+                json.Append(i > 0 ? "," : "").Append("{\"name\":\"").Append(entry.Name)
+                    .Append("\",\"commands\":").Append(entry.Commands.Length).Append('}');
+            }
+            return json.Append("]}").ToString();
+        }
+
+        /// <summary>Live glyphs newest first on a 16 by 16 sheet of 64 px masks.</summary>
+        internal static Bitmap Atlas()
+        {
+            const int cell = 64, columns = 16;
+            var image = new Bitmap(columns * cell, Max / columns * cell);
+            using (Graphics graphics = Graphics.FromImage(image))
+            {
+                graphics.Clear(Color.Black);
+                for (int i = 0; i < _order.Length; i++)
+                    using (Bitmap mask = Sprites.RenderMask(GlyphData.Count + _order[i], cell))
+                        graphics.DrawImageUnscaled(mask, i % columns * cell, i / columns * cell);
+            }
+            return image;
         }
     }
 

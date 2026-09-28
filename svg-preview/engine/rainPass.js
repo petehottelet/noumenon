@@ -99,7 +99,7 @@ export default ({ regl, config, lkg = { enabled: false, tileX: 1, tileY: 1 }, mo
 	const symbolUniforms = {
 		...commonUniforms,
 		...extractEntries(config, ["cycleSpeed", "cycleFrameSkip", "loops"]),
-		generatedCount: config.generatedCount ?? 192,
+		generatedCount: config.generatedCountRef ? () => config.generatedCountRef.count : config.generatedCount ?? 192,
 		glyphMix: config.glyphMix ?? 0,
 	};
 	const symbol = regl({
@@ -141,7 +141,8 @@ export default ({ regl, config, lkg = { enabled: false, tileX: 1, tileY: 1 }, mo
 
 	// We render the code into an FBO using MSDFs: https://github.com/Chlumsky/msdfgen
 	const glyphMSDF = loadImage(regl, config.glyphMSDFURL);
-	const generatedMSDF = loadImage(regl, config.generatedAtlasURL);
+	// A live atlas brings its own texture source, and its glyph count grows.
+	const generatedMSDF = config.liveGenerated ? config.liveGenerated(regl) : loadImage(regl, config.generatedAtlasURL);
 	const glintMSDF = loadImage(regl, config.glintMSDFURL);
 	const baseTexture = loadImage(regl, config.baseTextureURL, true);
 	const glintTexture = loadImage(regl, config.glintTextureURL, true);

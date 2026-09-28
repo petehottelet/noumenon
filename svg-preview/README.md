@@ -93,6 +93,7 @@ other face draws every cell from its own set, so the mix slider is disabled:
 | Braille | 255 dot patterns, U+2801–U+28FF | Noto Sans Symbols 2 |
 | Share Tech Mono | Digits, capitals and 14 symbols | Share Tech Mono |
 | Press Start 2P | The same 50 characters in 8-bit type | Press Start 2P |
+| Live (Smythe) | The 192 originals, then new glyphs streamed by `python -m live`, up to 256 | A live atlas that starts from `generated-sdf.png`; offered only when `python -m live` serves the page |
 
 Each font face uses one scale for all of its glyphs, so marks keep their
 relative sizes and places; Ogham and Braille are fine-grained and read best
@@ -191,7 +192,13 @@ node svg-preview/verify-lifecycle.mjs
 node svg-preview/verify-measurement.mjs
 node svg-preview/verify-browser-metadata.mjs
 node svg-preview/verify-raf-control.mjs
+node svg-preview/verify-live.mjs
 ```
+
+`verify-live.mjs` checks the live atlas: new glyphs fill the 64 free slots,
+then replace every slot in turn, and each arrives in its slot of the canvas and
+of every live texture. It also checks that only a page served from this machine
+asks for live glyphs.
 
 Benchmark completion restores exactly one animation loop. The lifecycle
 regression executes the renderer through repeated measurements, pause/resume,

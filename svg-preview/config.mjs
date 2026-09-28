@@ -60,7 +60,9 @@ export const GLYPH_FACES=Object.freeze([
   {value:'tifinagh',label:'Tifinagh',atlas:'./faces/tifinagh-sdf.png',grid:[16,4],count:56,pxRange:16,mixesReference:false,summary:'56 Tifinagh'},
   {value:'braille',label:'Braille',atlas:'./faces/braille-sdf.png',grid:[16,16],count:255,pxRange:16,mixesReference:false,summary:'255 Braille'},
   {value:'share-tech-mono',label:'Share Tech Mono',atlas:'./faces/share-tech-mono-sdf.png',grid:[16,4],count:50,pxRange:16,mixesReference:false,summary:'50 Share Tech Mono'},
-  {value:'press-start-2p',label:'Press Start 2P',atlas:'./faces/press-start-2p-sdf.png',grid:[16,4],count:50,pxRange:16,mixesReference:false,summary:'50 Press Start 2P'}
+  {value:'press-start-2p',label:'Press Start 2P',atlas:'./faces/press-start-2p-sdf.png',grid:[16,4],count:50,pxRange:16,mixesReference:false,summary:'50 Press Start 2P'},
+  // Live glyphs from `python -m live`: the approved 192 plus a stream of new ones in a 16 x 16 atlas.
+  {value:'live',label:'Live (Smythe)',atlas:'./generated-sdf.png',grid:[16,16],count:256,pxRange:16,mixesReference:false,summary:'live',live:true}
 ]);
 export const faceOf=value=>GLYPH_FACES.find(face=>face.value===value)??GLYPH_FACES[0];
 

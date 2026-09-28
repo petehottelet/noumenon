@@ -6,6 +6,7 @@ import makeBloom from './engine/bloomPass.js';
 import makePalette from './engine/palettePass.js';
 import {makeSimulationScope,makePipeline} from './engine/utils.js';
 import {createFrameGate} from './timing.mjs';
+import {createLiveAtlas,liveHost} from './live.mjs';
 
 const canvas=document.getElementById('rain'),status=document.getElementById('load-status');
 const held=new Set(),pointers=new Map(),reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -94,7 +95,7 @@ function updateChrome(){
   document.getElementById('mode').textContent=is3d?'Classic view':'Enter 3D';
   document.getElementById('mode').setAttribute('aria-pressed',String(is3d));
   document.getElementById('mode-read').textContent=presetLabel(values.preset);
-  document.getElementById('glyph-read').textContent=faceOf(values.glyphFace).summary;
+  document.getElementById('glyph-read').textContent=values.glyphFace==='live'?`${liveAtlas.count} live, ${liveAtlas.received()} new`:faceOf(values.glyphFace).summary;
   // The panel, tooltip and wordmark follow the body palette.
   const theme=interfaceTheme(values),root=document.documentElement.style;
   for(const property of THEME_PROPERTIES){if(theme)root.setProperty(property,theme[property]);else root.removeProperty(property);}
@@ -106,6 +107,15 @@ function wake(){
   document.body.classList.remove('idle');clearTimeout(idleTimer);
   idleTimer=setTimeout(()=>{if(!moving()&&!hud.isOpen()&&!document.querySelector(':focus-visible'))document.body.classList.add('idle');},3200);
 }
+// Glyphs streamed by `python -m live` fill a live atlas shared by every scene.
+const liveAtlas=createLiveAtlas({document,fetch:(...args)=>fetch(...args),
+  baseAtlasURL:'generated-sdf.png',
+  loadImage:async url=>{const image=new Image();image.src=url;await image.decode();return image;},
+  onChange:()=>{if(values.glyphFace==='live')updateChrome();}});
+function sceneConfig(next){
+  const config=engineConfig(next);
+  return next.glyphFace==='live'?Object.assign(config,{liveGenerated:liveAtlas.source,generatedCountRef:liveAtlas}):config;
+}
 // Rebuilds run one at a time, so a settings change made during the first load
 // waits for that scene instead of racing it.
 let rebuilds=Promise.resolve();
@@ -114,10 +124,10 @@ async function rebuild(next,{announce=true}={}){
   if(benchmark)finishMeasurement('Settings changed during measurement');
   const prior={...values};applying=true;stop();release();if(announce)status.textContent='Loading the rain…';
   scene?.destroy();scene=null;simulation.time=0;simulation.tick=0;accumulator=0;motion.x=0;motion.z=0;
-  try{scene=await createScene(engineConfig(next));values={...next};updateChrome();status.textContent='';}
+  try{scene=await createScene(sceneConfig(next));values={...next};updateChrome();status.textContent='';}
   catch(error){
     if(announce)status.textContent='The new settings could not be loaded.';
-    try{scene=await createScene(engineConfig(prior));values=prior;}catch{status.textContent='WebGL rendering is unavailable. Open the glyph catalog to view the SVGs.';}
+    try{scene=await createScene(sceneConfig(prior));values=prior;}catch{status.textContent='WebGL rendering is unavailable. Open the glyph catalog to view the SVGs.';}
     throw error;
   }finally{applying=false;schedule();}
 }
@@ -198,6 +208,9 @@ function runBenchmark({warmupSeconds=5,durationSeconds=60}={}){
     first:null,last:null,intervals:[],cpu:[],initial:stats(),timeout:setTimeout(()=>finishMeasurement('Measurement timed out'),(warmupSeconds+durationSeconds+10)*1000)};schedule();});
 }
 try{
+  // The Live face needs `python -m live` serving this page; elsewhere it is hidden.
+  if(liveHost(location.hostname)&&await liveAtlas.probe())liveAtlas.start();
+  else{document.querySelector('select[name=glyphFace] option[value=live]')?.remove();if(values.glyphFace==='live')values={...values,glyphFace:'smythe'};}
   await apply(values);pause(paused);wake();
   globalThis.NoumenonPreview=Object.freeze({version:'2',stats,inspectFrame,pause,reset,runBenchmark,
     benchmarkRunning:()=>Boolean(benchmark),inspect:()=>({...stats(),heldKeys:[...held],pointerCount:pointers.size}),

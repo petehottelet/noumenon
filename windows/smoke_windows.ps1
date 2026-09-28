@@ -146,6 +146,75 @@ function Test-PreviewProcess([string]$BinaryPath) {
     }
 }
 
+function Invoke-LiveReport([string]$BinaryPath, [string]$Folder, [string]$ReportPath) {
+    # CreateProcess, not the shell: the shell opens a .scr as a fullscreen saver.
+    $start = [Diagnostics.ProcessStartInfo]::new((Resolve-Path -LiteralPath $BinaryPath).Path,
+        "/live-report `"$Folder`" `"$ReportPath`"")
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $process = [Diagnostics.Process]::Start($start)
+    try {
+        if (-not $process.WaitForExit(30000)) { $process.Kill(); throw "/live-report did not finish: $Folder" }
+        if ($process.ExitCode -ne 0) { throw "/live-report failed with exit $($process.ExitCode)" }
+    } finally { $process.Dispose() }
+}
+
+function Test-LiveFeed($Assembly, [Type]$FormType, [string]$BinaryPath, [string]$OutputPath) {
+    # The same fixture and edge cases every native port is checked against.
+    $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if ($null -eq $python) { throw 'The live feed check needs Python on PATH' }
+    $fixture = Join-Path $root 'tests\fixtures\live-feed'
+    $edgeFeed = Join-Path ([IO.Path]::GetTempPath()) ('noumenon-live-feed-' + [Guid]::NewGuid().ToString('N'))
+    Push-Location $root
+    try {
+        & $python.Source -m live.feedcheck build $edgeFeed | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Could not build the live feed test folder' }
+        $reports = [ordered]@{}
+        foreach ($case in @(@('fixture', $fixture), @('edge_cases', $edgeFeed))) {
+            $reportPath = [IO.Path]::ChangeExtension($OutputPath, "live-$($case[0]).json")
+            Invoke-LiveReport $BinaryPath $case[1] $reportPath
+            $checked = & $python.Source -m live.feedcheck check $case[1] $reportPath
+            if ($LASTEXITCODE -ne 0) { throw "Live feed report differs ($($case[0]))" }
+            $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
+            $reports[$case[0]] = [ordered]@{ files = $report.files; live = $report.live;
+                rejected = @($report.rejected).Count; pool = $report.pool; check = "$checked" }
+        }
+    } finally {
+        Pop-Location
+        if (Test-Path -LiteralPath $edgeFeed) { Remove-Item -LiteralPath $edgeFeed -Recurse -Force -Confirm:$false }
+    }
+
+    $staticFlags = [Reflection.BindingFlags]'Static,NonPublic'
+    $flags = [Reflection.BindingFlags]'Instance,NonPublic'
+    $liveType = $Assembly.GetType('Noumenon.LiveGlyphs', $true)
+    $liveType.GetMethod('Use', $staticFlags).Invoke($null, @([string]$fixture)) | Out-Null
+    $liveForm = $null
+    try {
+        $atlas = $liveType.GetMethod('Atlas', $staticFlags).Invoke($null, $null)
+        try { $atlas.Save([IO.Path]::ChangeExtension($OutputPath, 'live.png'), [Drawing.Imaging.ImageFormat]::Png) }
+        finally { $atlas.Dispose() }
+        $liveForm = [Activator]::CreateInstance($FormType, $flags, $null,
+            @([Drawing.Rectangle]::new(0, 0, 1280, 720), $true, $false), $null)
+        $FormType.GetMethod('OnLoad', $flags).Invoke($liveForm, @([EventArgs]::Empty)) | Out-Null
+        $FormType.GetField('_timer', $flags).GetValue($liveForm).Stop()
+        $draw = $FormType.GetMethod('DrawFrame', $flags)
+        for ($frame = 0; $frame -lt 90; $frame++) { $draw.Invoke($liveForm, @([single]0.025)) | Out-Null }
+        $drawnLive = 0L
+        foreach ($layer in $FormType.GetField('_layers', $flags).GetValue($liveForm)) {
+            $drawnLive += $layer.GetType().GetField('DrawnLive', $flags).GetValue($layer)
+        }
+        if ($drawnLive -le 0) { throw 'Live glyphs were read but never drawn' }
+        $bitmap = $FormType.GetField('_buffer', $flags).GetValue($liveForm)
+        $frame = Inspect-Frame $bitmap
+        $bitmap.Save([IO.Path]::ChangeExtension($OutputPath, 'live-frame.png'), [Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+        if ($null -ne $liveForm) { $liveForm.Dispose() }
+        $liveType.GetMethod('Use', $staticFlags).Invoke($null, @($null)) | Out-Null
+    }
+    return [ordered]@{ status = 'passed'; reports = $reports; drawn_live = $drawnLive; frame = $frame }
+}
+
 $outputPath = [IO.Path]::GetFullPath($Output)
 [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($outputPath)) | Out-Null
 $assembly = [Reflection.Assembly]::LoadFile((Resolve-Path -LiteralPath $Binary).Path)
@@ -212,6 +281,7 @@ try {
     }
     $resized = Inspect-Frame $bitmap
     $bitmap.Save([IO.Path]::ChangeExtension($outputPath, 'resized.png'), [Drawing.Imaging.ImageFormat]::Png)
+    $live = Test-LiveFeed $assembly $formType $Binary $outputPath
     $preview = Test-PreviewProcess $Binary
     $receipt = [ordered]@{
         status = 'passed'
@@ -220,7 +290,7 @@ try {
         binary_version = $binaryVersion
         catalog_manifest_sha256 = (Get-FileHash -LiteralPath $CatalogManifest -Algorithm SHA256).Hash.ToLowerInvariant()
         catalog_atlas_sha256 = (Get-FileHash -LiteralPath ([IO.Path]::ChangeExtension($outputPath, 'catalog.png')) -Algorithm SHA256).Hash.ToLowerInvariant()
-        checks = @('compiled_assembly_load', 'filled_svg_catalog_249_slots', 'nonzero_compound_paths', 'cubic_curves', 'visible_248_and_blank_slot', 'both_catalogs_have_counters', 'weighted_original_share', 'both_catalogs_drawn', 'embedded_mit_notice', 'native_form_load', 'green_glyphs', 'black_gaps', 'motion', 'native_resize', 'preview_process_entrypoint', 'hidden_parent_embedding', 'preview_clean_exit')
+        checks = @('compiled_assembly_load', 'filled_svg_catalog_249_slots', 'nonzero_compound_paths', 'cubic_curves', 'visible_248_and_blank_slot', 'both_catalogs_have_counters', 'weighted_original_share', 'both_catalogs_drawn', 'embedded_mit_notice', 'native_form_load', 'green_glyphs', 'black_gaps', 'motion', 'native_resize', 'live_feed_report', 'live_feed_rejections', 'live_report_entrypoint', 'live_glyphs_drawn', 'preview_process_entrypoint', 'hidden_parent_embedding', 'preview_clean_exit')
         animation_frames = 90
         catalog = $catalog
         normal_animation_draws = $drawn
@@ -228,8 +298,9 @@ try {
         initial = $initial
         animated = $animated
         resized = $resized
+        live = $live
         preview_process = $preview
-        scope = 'Compiled .scr exact compound SVG catalog, native form load, both-family rendering, motion, resize, and /p subprocess embedding/exit; /s multi-monitor dispatch is not exercised'
+        scope = 'Compiled .scr exact compound SVG catalog, native form load, both-family rendering, motion, resize, live feed reading and drawing, and /p subprocess embedding/exit; /s multi-monitor dispatch is not exercised'
     }
     $receiptPath = [IO.Path]::ChangeExtension($outputPath, 'json')
     [IO.File]::WriteAllText($receiptPath, ($receipt | ConvertTo-Json -Depth 5) + "`n", [Text.UTF8Encoding]::new($false))

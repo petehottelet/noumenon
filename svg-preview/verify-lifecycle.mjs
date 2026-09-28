@@ -14,7 +14,7 @@ async function preview(initialPaused=false,{duringFirstBuild=null}={}){
   let now=0,nextId=0,settings=null;
   const builds=[];
   const callbacks=new Map(),timers=new Map(),elements=new Map();
-  const element=()=>({textContent:'',disabled:false,dataset:{},
+  const element=()=>({textContent:'',disabled:false,dataset:{},remove(){},
     addEventListener(){},setAttribute(){},closest(){return null;},
     classList:{add(){},remove(){},toggle(){},contains(){return false;}}});
   const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
@@ -35,6 +35,7 @@ async function preview(initialPaused=false,{duringFirstBuild=null}={}){
     mountSettings:options=>{settings=options;return {};},mountHud:()=>({isOpen:()=>false,open(){},close(){},toggle(){}}),serializeSettingsUrl:()=>'',
     SCHEMA:[],PRESETS:[],presetValues:()=>({...config}),readConfig:()=>({...config}),engineConfig:value=>value,
     is3dPreset:id=>id==='3d',presetLabel:()=>'Classic',faceOf:()=>({summary:'192 + 56'}),interfaceTheme:()=>null,THEME_PROPERTIES:[],toggleThreeD:value=>({...value}),
+    createLiveAtlas:()=>({probe:async()=>false,start(){},source(){},count:192,received:()=>0}),liveHost:()=>false,
     makeRain(){},makeBloom(){},makePalette(){},
     makeSimulationScope:()=>callback=>callback(),
     // Each scene build records whether the previous one had finished and what the

@@ -10,13 +10,14 @@
       "path": "rainPass.js",
       "source_sha256": "a10bb53583d2423feb9d10adcafcd368eca299b6065646e111c09d2e37af931f",
       "source_git_blob": "f423473d79872599294b3f23bc3392bb1a74f5ee",
-      "sha256": "70c51df478d33a73ebe9e9ca6fef1ed09f7a1a9ffd64b68911a67f0963cce93d",
+      "sha256": "77828d6470ae13a3c1224cbe871f4db17eaeb4b6d5e0832a176323df570342e7",
       "changes": [
         "Resolve shaders relative to the vendored engine.",
         "Add the separate generated MSDF atlas and weighted catalog uniforms.",
         "Read interactive camera offsets without changing rain state.",
         "Await the effect shader and generated atlas before readiness.",
-        "Allow camera-only draws to skip simulation compute passes."
+        "Allow camera-only draws to skip simulation compute passes.",
+        "Accept a live generated atlas source whose glyph count grows while the rain runs."
       ]
     },
     {

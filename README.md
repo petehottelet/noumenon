@@ -11,6 +11,7 @@
   <p>
     <a href="https://noumenon-six.vercel.app/svg-preview/">Live explorer</a> ·
     <a href="#how-it-works">How it works</a> ·
+    <a href="#generate-live-glyphs">Live glyphs</a> ·
     <a href="#run-the-web-views">Run the web views</a> ·
     <a href="#build-the-native-ports">Build the native ports</a>
   </p>
@@ -35,9 +36,11 @@ executes the nodes concurrently. The 192 SVG glyphs rendered here come from
 Smythe's contour catalog, which its
 [SVG workflow benchmark](https://github.com/petehottelet/smythe/blob/main/benchmarks/svg_v2_results.md)
 compiles, validates and exports. This repository vendors that catalog and
-renders it; it does not import Smythe's Python packages.
+renders it. Only the optional [live glyph generator](#generate-live-glyphs)
+imports Smythe's Python packages; the views and native savers run without it.
 
 - [How it works](#how-it-works)
+- [Generate live glyphs](#generate-live-glyphs)
 - [Run the web views](#run-the-web-views)
 - [Build the native ports](#build-the-native-ports)
 - [Native checks](#native-checks)
@@ -50,6 +53,55 @@ renders it; it does not import Smythe's Python packages.
 ## How it works
 
 The explorer and the native ports can generate an infinite amount of new glyphs dynamically when run using the smythe framework. Alternatively, they can draw from a catalog of 248 precreated glyphs. The native savers use their layered motion and host controls. The web explorer supplies the REGL exposure pipeline, 3D navigation, and live settings; those behaviors are next for native exploration modes.
+
+## Generate live glyphs
+
+`python -m live` uses Smythe to generate new glyphs in the style of the 192
+approved originals for as long as it runs, and streams them into the web
+explorer and the native savers:
+
+```bash
+python -m pip install -r requirements-dev.txt   # Shapely, and Smythe on Python 3.11+
+python -m live --open
+```
+
+- **Two lanes.** The local lane (the default, and free) samples a grid grammar
+  drawn from the approved catalog: two halves of 5 × 2 cells either side of a
+  12-unit gap, straight-cut stems and bars, rounded corners only where a
+  stroke turns, and occasional leaning stems. The model lane asks a live text
+  model to design glyphs in the same grammar: `--lane model` or `--lane both`,
+  with `--model-provider anthropic` or `openai` and that provider's API key.
+  It stops at its spending cap, `--max-usd` (default $1.00), and the local lane
+  carries on. Each round is a Smythe graph that a Swarm runs with bounded
+  concurrency.
+- **Style gate.** Every design is compiled to the catalog's SVG format and kept
+  only if it matches the approved set: ink coverage from 0.165 to 0.25, at most
+  four pieces, no piece, counter or gap too small to hold at 16 px, the same
+  shape at every size and threshold, no near-copy of a catalog glyph or an
+  earlier one, and no likeness to a letter or numeral.
+- **Saving.** Every accepted glyph is saved by default in
+  `generated-glyphs/<session>/`, one SVG each, with a `manifest.jsonl` that
+  records its lane, seed, model and measurements. `--no-save` skips the archive
+  to conserve disk space. Git ignores `generated-glyphs/`.
+- **Web explorer.** The command serves the explorer on this machine (`--port`,
+  default 8000) with a **Live (Smythe)** glyph face. It starts from the
+  approved 192, adds new glyphs as they arrive, then replaces the oldest in
+  turn. The face appears only on a page served by `python -m live`.
+- **Native savers.** The newest 256 glyphs also go to a feed folder, which the
+  savers read every two seconds while they run: new glyphs join the original
+  family, the newest first, and gradually replace the approved originals.
+  The folder is `%LOCALAPPDATA%\Noumenon\live-feed` on Windows, the screen saver
+  container's `Library/Application Support/Noumenon/live-feed` on macOS, and
+  `$XDG_DATA_HOME/noumenon/live-feed` on Linux; `NOUMENON_LIVE_FEED` names
+  another for both sides, and `--no-feed` skips it. The feed stays at 256
+  glyphs, with or without `--no-save`. With no feed, the savers show the
+  built-in catalog. They draw the original family in 10% of cells by default
+  (the Linux `--mix` option changes it).
+
+`--interval` sets the seconds between released glyphs (default 2), and
+`--concurrency`, `--seed` and `--count` tune the run. The
+[live generator guide](live/README.md) describes the pipeline and the feed
+rules each saver follows.
 
 ## Run the web views
 
@@ -168,6 +220,11 @@ Each port has a smoke check that CI runs against a fresh build:
 
 Each check also renders the complete native glyph atlas, verifies the blank
 slot and filled counters, and records the catalog hashes and mixed selection.
+Each reads the same [live feed fixture](tests/fixtures/live-feed) and a folder
+of edge cases that `python -m live.feedcheck build` writes, compares the
+saver's report with the expected one, and draws live glyphs; the Linux check
+also matches every live silhouette with its source SVG and adds glyphs to a
+running saver.
 Local builds need their own verification. `verification/analyze_native_masks.py`
 compares a native 64 px atlas with an independent source-SVG rendering as a
 diagnostic, not an acceptance gate. These checks validate native execution; OS
@@ -228,7 +285,8 @@ python import_reference_glyphs.py --check
 
 ## Tests and CI
 
-The offline suite needs Python 3.10 or later and Node.js 22:
+The offline suite needs Python 3.10 or later and Node.js 22; the live
+generator's Smythe tests run on Python 3.11 or later:
 
 ```bash
 python -m pip install -r requirements-dev.txt
@@ -240,8 +298,9 @@ The tests make no network or API calls. Checks that need a native toolchain
 skip when it is absent: the Windows renderer checks use the C# compiler
 bundled with Windows, and the Linux executable check needs a C compiler,
 X11/Cairo development packages, librsvg, and Xvfb. The suite also fails any
-import of Smythe's packages, so it runs the same with or without Smythe
-installed.
+import of Smythe's packages outside the live generator and its tests, so the
+rest runs the same with or without Smythe installed. The live tests use
+scripted providers and never call a paid model.
 
 [CI](.github/workflows/ci.yml) runs the Python tests on Ubuntu and Windows,
 the explorer's `verify-*.mjs` checks, and the native export check. It then
