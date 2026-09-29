@@ -1,7 +1,7 @@
 """The endless generation loop: Smythe batches, style gates, and a steady release.
 
 Each round builds a Smythe graph of design requests and runs it with Swarm:
-local requests through the grid sampler, model requests through a text model
+local requests through the shape grammar, model requests through a text model
 under the session's spending cap. Designs are compiled and judged; accepted
 glyphs wait in a short queue and are released at a steady interval to the
 archive, the feed and the web stream, so the rain receives a constant flow.
@@ -17,7 +17,7 @@ import time
 from typing import Callable
 
 from live import lanes
-from live.compile import compile_spec
+from live.compile import compile_shapes, compile_spec, polygons_from_rings
 from live.style import StyleGate
 
 
@@ -66,7 +66,7 @@ class Runner:
         from smythe import Swarm, Synthesizer, SynthesisStrategy
 
         if lane == "local":
-            provider = self.providers.get("local") or lanes.local_provider()
+            provider = self.providers.get("local") or lanes.local_provider(self.gate.parts)
             return Swarm(provider=provider, model=lanes.LOCAL_MODEL, parallel=True,
                          max_concurrency=self.settings.concurrency, max_budget_usd=0.0, artifact_dir=None,
                          synthesizer=Synthesizer(SynthesisStrategy.CONCATENATE))
@@ -110,17 +110,22 @@ class Runner:
                 continue
             text = str(node.result)
             if lane == "local":
-                designs = [(item["spec"], item["seed"]) for item in json.loads(text)["designs"]]
+                designs = [(item["spec"], item["seed"], item.get("polygons"), item.get("groups"))
+                           for item in json.loads(text)["designs"]]
             else:
                 specs, problems = lanes.parse_designs(text)
                 self.totals.rejected += len(problems)
-                designs = [(spec, None) for spec in specs]
-            for spec, seed in designs:
-                self._judge(spec, seed, lane)
+                designs = [(spec, None, None, None) for spec in specs]
+            for spec, seed, rings, groups in designs:
+                self._judge(spec, seed, lane, rings, groups)
 
-    def _judge(self, spec: dict, seed: int | None, lane: str) -> None:
+    def _judge(self, spec: dict, seed: int | None, lane: str, rings=None, groups=None) -> None:
         try:
-            glyph = compile_spec(spec, seed=seed)
+            if rings is not None:
+                glyph = compile_shapes(spec, polygons_from_rings(rings),
+                                       groups if groups is not None else range(len(rings)))
+            else:
+                glyph = compile_spec(spec, seed=seed)
         except (ValueError, TypeError):
             self.totals.rejected += 1
             return
@@ -131,7 +136,8 @@ class Runner:
         self.seq += 1
         glyph_id = f"{self.session_prefix}-{self.seq:06d}"
         self.gate.remember(glyph_id, report)
-        self.examples = ([glyph.spec] + self.examples)[:6]
+        if "halves" in glyph.spec:  # the model lane sees grid specs only
+            self.examples = ([glyph.spec] + self.examples)[:6]
         provider = None if lane == "local" else self.settings.model_provider
         model = lanes.LOCAL_MODEL if lane == "local" else (self.settings.model or lanes.MODEL_PROVIDERS[self.settings.model_provider][1])
         self.queue.append({

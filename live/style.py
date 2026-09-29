@@ -5,7 +5,9 @@ apart, its ink coverage sits in the catalog's range, its piece and hole counts
 hold from 16 to 128 px and across ink thresholds, and its silhouette is not a
 near match (IoU 0.85, allowing 2 px shifts and mirror images) of an approved
 glyph, of a glyph accepted earlier in the session, or of a letter, numeral or
-common symbol when a bold system font is available to draw them.
+common symbol when a bold system font is available to draw them. No part with
+a joint, a curve or a counter, and no group of parts drawn together, may repeat
+one of the last 256 accepted glyphs' shapes (see parts.py).
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 from scipy import ndimage
 from shapely.geometry import Polygon
 
+from live.parts import WINDOW as PART_WINDOW, RecentParts, candidates
 from svg_raster import render_svg
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +29,9 @@ MIN_PIECE, MIN_COUNTER, MIN_SPACING = 195.0, 150.0, 8.0
 INK_RANGE = (0.165, 0.25)
 MAX_PIECES, SMALL_PIECE, MAX_SMALL = 4, 300.0, 1
 NEAR_MATCH = 0.85
-LETTER_MATCH = 0.80
+# The approved glyphs score a median 0.46 against the letter silhouettes (90th
+# percentile 0.57); plain letterforms such as X, Y, O, V and > score 0.65 to 0.80.
+LETTER_MATCH = 0.65
 SMALL_SIZES = (16, 32, 64)
 SIDE = 64
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789=+-<>/\\|#%&[](){}!?:;"
@@ -44,6 +49,7 @@ class Report:
     reasons: list[str] = field(default_factory=list)
     metrics: dict = field(default_factory=dict)
     silhouette: np.ndarray | None = None
+    parts: list = field(default_factory=list)       # the glyph's distinctive shapes, to remember if kept
 
 
 def ink_mask(svg: str, size: int, threshold: int = 128) -> np.ndarray:
@@ -126,7 +132,8 @@ def _letter_silhouettes() -> tuple[np.ndarray, str] | tuple[None, None]:
 class StyleGate:
     """Judge compiled glyphs and remember the accepted ones for this session."""
 
-    def __init__(self, catalog: Path = ROOT / "catalog", *, letters: bool = True, memory: int = 1024):
+    def __init__(self, catalog: Path = ROOT / "catalog", *, letters: bool = True, memory: int = 1024,
+                 parts_window: int = PART_WINDOW):
         svgs = sorted(catalog.glob("GLYPH-*.svg"))
         self.catalog_ids = [path.stem for path in svgs]
         self.catalog = np.stack([silhouette(ink_mask(path.read_text(encoding="utf-8"), 128)) for path in svgs]) if svgs \
@@ -134,6 +141,7 @@ class StyleGate:
         self.letters, self.letter_font = _letter_silhouettes() if letters else (None, None)
         self.catalog_coarse = np.stack([_coarse(m) for m in self.catalog]) if len(self.catalog) else np.zeros((0, 256), bool)
         self.memory = memory
+        self.parts = RecentParts(parts_window)
         self.session: list[np.ndarray] = []
         self.session_coarse: list[np.ndarray] = []
         self.session_ids: list[str] = []
@@ -169,6 +177,10 @@ class StyleGate:
             metrics["spacing"] = round(spacing, 2)
             if spacing < MIN_SPACING:
                 reasons.append(f"pieces sit closer than {MIN_SPACING:g} units")
+        part_similarity, parts = self.parts.compare(candidates(polygons, getattr(glyph, "groups", ())))
+        metrics["part_similarity"] = round(part_similarity, 4)
+        if part_similarity >= self.parts.max_similarity:
+            reasons.append(f"repeats a recent part (IoU {part_similarity:.2f})")
         try:
             full = ink_mask(glyph.svg, 128)
         except ValueError as error:
@@ -194,10 +206,11 @@ class StyleGate:
             metrics["letter"] = {"iou": round(iou, 4), "char": LETTERS[index], "font": self.letter_font}
             if iou >= LETTER_MATCH:
                 reasons.append(f"reads like '{LETTERS[index]}' (IoU {iou:.2f})")
-        return Report(not reasons, reasons, metrics, shape)
+        return Report(not reasons, reasons, metrics, shape, parts)
 
     def remember(self, glyph_id: str, report: Report) -> None:
-        """Hold an accepted glyph's silhouette so later glyphs must differ from it."""
+        """Hold an accepted glyph's silhouette and distinctive shapes so later glyphs must differ from them."""
+        self.parts.remember(report.parts)
         self.session.append(report.silhouette)
         self.session_coarse.append(_coarse(report.silhouette))
         self.session_ids.append(glyph_id)

@@ -16,6 +16,7 @@ from live import feedcheck, grammar, lanes, sinks  # noqa: E402
 from live.__main__ import main  # noqa: E402
 from live.compile import compile_spec  # noqa: E402
 from live.runner import Runner, Settings  # noqa: E402
+from live.parts import RecentParts  # noqa: E402
 from live.style import StyleGate  # noqa: E402
 
 
@@ -46,14 +47,18 @@ def _gate(shared):
     gate = StyleGate.__new__(StyleGate)
     gate.__dict__.update(shared.__dict__)
     gate.session, gate.session_coarse, gate.session_ids = [], [], []
+    gate.parts = RecentParts(shared.parts.window)
     return gate
 
 
 def _passing_specs(gate, count):
+    """Designs that pass the gate one after another, so none repeats an earlier one's parts."""
     specs = []
     for seed in range(500):
         spec = grammar.sample_spec(seed)
-        if gate.check(compile_spec(spec)).ok and spec not in specs:
+        report = gate.check(compile_spec(spec))
+        if report.ok and spec not in specs:
+            gate.remember(f"pick-{len(specs)}", report)
             specs.append(spec)
             if len(specs) == count:
                 return specs

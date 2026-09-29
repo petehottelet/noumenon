@@ -15,31 +15,56 @@ python -m live --lane both --max-usd 2          # add a live model, capped at $2
 
 1. **Design.** Each round is a Smythe `ExecutionGraph` of design requests that
    a `Swarm` runs with bounded concurrency. The **local lane** answers through
-   a $0 provider that samples the grid grammar ([grammar.py](grammar.py)). The
-   **model lane** sends the style brief ([lanes.py](lanes.py)) and recent
-   accepted designs to a text model and parses the designs from its reply;
-   designs that break the grammar are counted as rejected. The defaults are
+   a $0 provider that draws glyphs with the shape grammar
+   ([shapes.py](shapes.py)). The **model lane** sends the style brief
+   ([lanes.py](lanes.py)) and recent accepted grid designs to a text model and
+   parses grid designs ([grammar.py](grammar.py)) from its reply; designs that
+   break the grid grammar are counted as rejected. The defaults are
    `claude-fable-5-1` (`--model-provider anthropic`, `ANTHROPIC_API_KEY`) and
    `gpt-5.6-sol` (`--model-provider openai`, `OPENAI_API_KEY`); `--model`
    chooses another. Rounds alternate when both lanes run.
-2. **Grammar.** A glyph is two halves, side by side (`columns`) or stacked
-   (`tiers`), either side of a 12-unit gap. Each half is 5 cells along its
-   strokes and 2 across, about 14 units each, and fills at least 2 cells; a
-   glyph fills 5 to 13. Cells never touch only at a corner. A corner may be
-   rounded only where a stroke turns, and a half holding one straight stem of
-   3 or more cells may lean it into its empty column.
-3. **Compile.** [compile.py](compile.py) jitters the cell edges within the
-   approved stroke widths (stems 14 to 16 units, bars 13 to 15), cuts the
-   rounded turns, shears leaning stems, and writes the catalog's SVG format:
-   a 100-unit viewBox with one black nonzero path per piece, holes included.
+2. **Grammars.** The **shape grammar** (local lane) has 38 modules gathered
+   from every glyph family the explorer carries: the approved catalog, the
+   classic reference, Runic, Ogham, Tifinagh, Yautja, Braille, Share Tech Mono
+   and Press Start 2P. Each is redrawn with the catalog's rules: stems 13.5 to
+   16.5 units wide, bars 12.5 to 14 thick, square ends, curves that taper to a
+   straight cut, and gaps of 10.5 to 15 units. Every module takes continuous
+   proportions, weights, curvature and taper, and may be turned, mirrored,
+   leaned, broken by a gap or stepped on a pixel grid. A glyph is two halves
+   side by side or stacked, a main half beside two quarters, or one large
+   module with a mark or a deliberate break, never a single module alone. It has
+   two to four parts and keeps the catalog's glyph box (x 13 to 89, y 13 to
+   91, at least 62 by 68 units) and ink (0.172 to 0.239). A module whose parts
+   would repeat a recent shape (step 4) is redrawn while the glyph is built, so
+   the glyph a seed yields also depends on what came before it.
+
+   The **grid grammar** (model lane) divides a glyph into two halves, side by
+   side (`columns`) or stacked (`tiers`), either side of a 12-unit gap. Each
+   half is 5 cells along its strokes and 2 across, about 14 units each, and
+   fills at least 2 cells; a glyph fills 5 to 13. Cells never touch only at a
+   corner. A corner may be rounded only where a stroke turns, and a half
+   holding one straight stem of 3 or more cells may lean it into its empty
+   column.
+3. **Compile.** [compile.py](compile.py) writes the catalog's SVG format: a
+   100-unit viewBox with one black nonzero path per piece, holes included.
+   Shape designs arrive as polygons. Grid specs have their cell edges jittered
+   within the approved stroke widths (stems 14 to 16 units, bars 13 to 15),
+   their rounded turns cut and their leaning stems sheared.
 4. **Gate.** [style.py](style.py) keeps a glyph only if its ink coverage is
    0.165 to 0.25 (the approved set's 5th to 95th percentile is 0.173 to
    0.241); it has at most four pieces and at most one small mark; no piece is
    under 195 square units, no counter under 150 and no gap under 8; its pieces
    and holes stay the same at 16, 32, 64 and 128 px and at two ink thresholds;
    it is not a near-copy (IoU of 0.85 or more, allowing shifts and turns) of a
-   catalog glyph or one accepted earlier in the session; and it does not match
-   a bold letter, numeral or common symbol at an IoU of 0.80 or more.
+   catalog glyph or one accepted earlier in the session; it does not match a
+   bold letter, numeral or common symbol at an IoU of 0.65 or more (the
+   approved glyphs score a median of 0.46); and none of its distinctive shapes
+   repeats one of the last 256 accepted glyphs ([parts.py](parts.py)). A
+   distinctive shape is a part with a joint, a curve or a counter, or the parts
+   one module drew together. It repeats a remembered shape when they overlap at
+   an IoU of 0.78 or more in any quarter turn or mirror image: curves at any
+   size, other shapes within 1.25 times the size. Lone bars, stems and leaning
+   strokes may recur.
 5. **Release.** Accepted glyphs wait in a short queue and are released every
    `--interval` seconds (default 2) to the archive, the feed and the explorer.
 
@@ -50,8 +75,9 @@ once another call could pass `--max-usd`; the local lane continues.
 
 - **Archive** (default): `generated-glyphs/<session>/` holds every accepted
   glyph as `<session>-<number>.svg` and a `manifest.jsonl` line with its lane,
-  seed, provider, model, grammar spec, SHA-256 and measurements. `--out`
-  chooses the folder; `--no-save` skips the archive.
+  seed, provider, model, design (a grid spec, or the shape grammar's layout and
+  modules), SHA-256 and measurements. `--out` chooses the folder; `--no-save`
+  skips the archive.
 - **Feed** (default): the newest 256 glyphs in the per-user folder the native
   savers read, pruned as new glyphs arrive, so it stays small either way.
   `--feed` or `NOUMENON_LIVE_FEED` chooses the folder; `--no-feed` skips it.
@@ -100,8 +126,9 @@ the loaded `.saver` bundle.
 
 ## Tests
 
-`tests/test_live_*.py` cover the grammar, the SVG format, the style gate, the
-runner through real Smythe graphs with scripted providers (archive and feed
-writes, `--no-save`, parsing, rejection, and the spending cap), the server's
-allowlist and stream, and the feed rules. They make no network or paid model
+`tests/test_live_*.py` cover both grammars, the SVG format, the style gate and
+its memory of recent parts, the runner through real Smythe graphs with
+scripted providers (archive and feed writes, `--no-save`, parsing, rejection,
+the spending cap, and a session that repeats no part), the server's allowlist
+and stream, and the feed rules. They make no network or paid model
 calls. `svg-preview/verify-live.mjs` checks the explorer's live atlas.
