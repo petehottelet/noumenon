@@ -11,14 +11,42 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
+from pathlib import Path
 import time
 from typing import Callable
 
 from live import lanes
 from live.compile import compile_shapes, compile_spec, polygons_from_rings
 from live.style import StyleGate
+
+PREFIX_FORMAT = "%Y%m%dT%H%M%S"
+
+
+def session_prefix(sinks, now: datetime | None = None) -> str:
+    """A second-resolution name prefix that sorts after every glyph already written.
+
+    Glyph names must sort in arrival order and never repeat. A session that
+    starts within the same second as the previous one, or after the clock has
+    moved back, takes the second after the newest name in its folders instead.
+    """
+    prefix = (now or datetime.now(timezone.utc)).replace(microsecond=0)
+    latest = None
+    for sink in sinks:
+        folder = getattr(sink, "folder", None)
+        if folder is None or not Path(folder).is_dir():
+            continue
+        for path in Path(folder).glob("*-*.svg"):
+            try:
+                written = datetime.strptime(path.name.split("-", 1)[0], PREFIX_FORMAT).replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+            if latest is None or written > latest:
+                latest = written
+    if latest is not None and prefix <= latest:
+        prefix = latest + timedelta(seconds=1)
+    return prefix.strftime(PREFIX_FORMAT)
 
 
 @dataclass
@@ -58,7 +86,7 @@ class Runner:
         self.next_seed = settings.seed
         self.seq = 0
         self.examples: list[dict] = []
-        self.session_prefix = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        self.session_prefix = session_prefix(sinks)
         self.stopped = False
 
     # ---------- Smythe batches ----------
