@@ -1,4 +1,4 @@
-"""Glyph design specs on the approved Noumenon grid, and the local lane's sampler.
+"""Glyph design specs on the approved Noumenon grid: the form the model lane writes.
 
 Every composed glyph in the approved catalog splits into two halves, side by
 side ("columns") or stacked ("tiers"), separated by a 12-unit gap. Each half is
@@ -7,7 +7,7 @@ a coarse grid of about 14-unit cells: 5 cells along the strokes' long axis and
 stroke turns (bowls and shoulders; stroke ends stay straight-cut), and may lean
 one straight stem across its half.
 
-A spec is plain JSON, so the model lane can write specs too:
+A spec is plain JSON, the form in which the model lane writes its designs:
 
     {"layout": "columns",
      "halves": [{"cells": ["##", "#.", "#.", "#.", "##"], "round": ["0,0,tl"], "lean": null},
@@ -198,7 +198,7 @@ def sample_half(rng: random.Random) -> dict:
 
 
 def sample_spec(seed: int) -> dict:
-    """A deterministic design for one seed; callers retry with later seeds on rejection."""
+    """A random grid design, the same for the same seed; the tests use it to exercise the grid path."""
     rng = random.Random(seed)
     for _ in range(64):
         spec = {"layout": rng.choice(LAYOUTS), "halves": [sample_half(rng), sample_half(rng)]}

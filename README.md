@@ -65,20 +65,23 @@ python -m pip install -r requirements-dev.txt   # Shapely, and Smythe on Python 
 python -m live --open
 ```
 
-- **Two lanes.** The local lane (the default, and free) samples a grid grammar
-  drawn from the approved catalog: two halves of 5 × 2 cells either side of a
-  12-unit gap, straight-cut stems and bars, rounded corners only where a
-  stroke turns, and occasional leaning stems. The model lane asks a live text
-  model to design glyphs in the same grammar: `--lane model` or `--lane both`,
-  with `--model-provider anthropic` or `openai` and that provider's API key.
-  It stops at its spending cap, `--max-usd` (default $1.00), and the local lane
+- **Two lanes.** The local lane (the default, and free) draws each glyph with
+  a shape grammar of 38 modules gathered from every glyph family the explorer
+  carries, redrawn in the approved catalog's weights with square ends and
+  tapered curves, in continuous proportions, turns, leans and breaks. The
+  model lane asks a live text model to design glyphs on a coarse grid of two
+  halves, 5 × 2 cells each: `--lane model` or `--lane both`, with
+  `--model-provider anthropic` or `openai` and that provider's API key. It
+  stops at its spending cap, `--max-usd` (default $1.00), and the local lane
   carries on. Each round is a Smythe graph that a Swarm runs with bounded
   concurrency.
 - **Style gate.** Every design is compiled to the catalog's SVG format and kept
   only if it matches the approved set: ink coverage from 0.165 to 0.25, at most
   four pieces, no piece, counter or gap too small to hold at 16 px, the same
   shape at every size and threshold, no near-copy of a catalog glyph or an
-  earlier one, and no likeness to a letter or numeral.
+  earlier one, and no likeness to a letter or numeral. No part with a joint, a
+  curve or a counter may repeat a shape from the last 256 glyphs, so the same
+  shape never appears twice on screen.
 - **Saving.** Every accepted glyph is saved by default in
   `generated-glyphs/<session>/`, one SVG each, with a `manifest.jsonl` that
   records its lane, seed, model and measurements. `--no-save` skips the archive

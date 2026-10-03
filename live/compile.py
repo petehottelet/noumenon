@@ -1,9 +1,11 @@
-"""Compile a glyph spec into catalog-format SVG on the 100-unit canvas.
+"""Compile glyph designs into catalog-format SVG on the 100-unit canvas.
 
 The output matches the approved catalog: viewBox 0 0 100 100 at 128 px, one
 black nonzero <path> per piece, absolute M/L/Z commands only, and holes wound
-opposite to their outlines. Cell edges vary per glyph within the catalog's
-measured ranges: stems 14-16 units, bars 13-15, a 12-unit gap between halves.
+opposite to their outlines. A grid spec, the form the model lane writes, has
+its cell edges varied per glyph within the catalog's measured ranges: stems
+14-16 units, bars 13-15, a 12-unit gap between halves. A shape-grammar design
+from the local lane arrives as polygons and only needs serializing.
 """
 
 from __future__ import annotations
@@ -29,6 +31,8 @@ class Glyph:
     svg: str
     polygons: tuple[Polygon, ...]
     sha256: str
+    # For shape-grammar glyphs, the module draw each polygon came from; parts drawn together share one.
+    groups: tuple[int, ...] = ()
 
 
 def _long_edges(rng: random.Random) -> list[int]:
@@ -123,6 +127,21 @@ def svg_for(polygons) -> str:
             + "".join(paths) + "</svg>")
 
 
+def _finish(spec: dict, parts, groups=None) -> Glyph:
+    """Round pieces to the serialized precision, wind them, order them top-left first and serialize."""
+    groups = list(groups) if groups is not None else [None] * len(parts)
+    if len(groups) != len(parts):
+        raise ValueError("each piece needs one group")
+    pieces = [(orient(Polygon([(round(x, 2), round(y, 2)) for x, y in p.exterior.coords],
+                              [[(round(x, 2), round(y, 2)) for x, y in i.coords] for i in p.interiors]), sign=1.0),
+               group) for p, group in zip(parts, groups) if not p.is_empty]
+    pieces.sort(key=lambda item: (round(item[0].bounds[1]), round(item[0].bounds[0])))
+    polygons = tuple(piece for piece, _ in pieces)
+    svg = svg_for(polygons)
+    kept = tuple(group for _, group in pieces) if pieces and pieces[0][1] is not None else ()
+    return Glyph(spec=spec, svg=svg, polygons=polygons, sha256=hashlib.sha256(svg.encode()).hexdigest(), groups=kept)
+
+
 def compile_spec(spec: dict, seed: int | None = None) -> Glyph:
     spec = check_spec(spec)
     rng = _jitter_rng(spec, seed)
@@ -130,14 +149,27 @@ def compile_spec(spec: dict, seed: int | None = None) -> Glyph:
     halves = [_across_edges(rng, True), _across_edges(rng, False)]
     shape = unary_union([_half_shape(spec["layout"], half, long_edges, edges)
                          for half, edges in zip(spec["halves"], halves)])
-    parts = [shape] if shape.geom_type == "Polygon" else list(shape.geoms)
-    # Round to the serialized precision, then order pieces top-left first.
-    parts = [orient(Polygon([(round(x, 2), round(y, 2)) for x, y in p.exterior.coords],
-                            [[(round(x, 2), round(y, 2)) for x, y in i.coords] for i in p.interiors]), sign=1.0)
-             for p in parts if not p.is_empty]
-    parts.sort(key=lambda p: (round(p.bounds[1]), round(p.bounds[0])))
-    svg = svg_for(parts)
-    return Glyph(spec=spec, svg=svg, polygons=tuple(parts), sha256=hashlib.sha256(svg.encode()).hexdigest())
+    return _finish(spec, [shape] if shape.geom_type == "Polygon" else list(shape.geoms))
 
 
-__all__ = ["Glyph", "compile_spec", "svg_for", "ACROSS", "LONG"]
+def polygons_from_rings(rings) -> list[Polygon]:
+    """Polygons from their JSON form: per polygon, its outline ring then any hole rings."""
+    return [Polygon(polygon[0], polygon[1:]) for polygon in rings]
+
+
+def rings_for(polygons, digits: int = 3) -> list:
+    """The JSON form of polygons, rounded: per polygon, its outline ring then any hole rings."""
+    def ring(coords):
+        return [[round(x, digits), round(y, digits)] for x, y in list(coords)[:-1]]
+    return [[ring(p.exterior.coords)] + [ring(i.coords) for i in p.interiors] for p in polygons]
+
+
+def compile_shapes(spec: dict, polygons, groups) -> Glyph:
+    """Serialize a shape-grammar design; ``groups`` names the module draw of each polygon."""
+    polygons = list(polygons)
+    if not polygons or any(p.geom_type != "Polygon" or p.is_empty for p in polygons):
+        raise ValueError("a shape design needs one or more non-empty polygons")
+    return _finish(dict(spec), polygons, groups)
+
+
+__all__ = ["Glyph", "compile_shapes", "compile_spec", "polygons_from_rings", "rings_for", "svg_for", "ACROSS", "LONG"]

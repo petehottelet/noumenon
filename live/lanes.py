@@ -1,22 +1,26 @@
-"""The two design lanes Smythe runs: local sampling and a live model.
+"""The two design lanes Smythe runs: the local shape grammar and a live model.
 
 Each Smythe node carries a design request. The local lane's provider answers it
-by sampling the grid grammar, offline and at no cost. The model lane sends the
-same request, with the grammar and style rules, to a text model through one of
-Smythe's providers, and the model answers with specs in the same JSON form.
-Either way, specs are compiled and judged by the same style gates.
+by drawing glyphs with the shape grammar (shapes.py), offline and at no cost,
+redrawing any module whose parts repeat a shape the style gate remembers. The
+model lane sends the request, with the grid grammar and style rules, to a text
+model through one of Smythe's providers, and the model answers with grid specs
+in JSON. Either way, designs are compiled and judged by the same style gates.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import random
 import re
 
-from live.grammar import LAYOUTS, check_spec, sample_spec
+from live import shapes
+from live.compile import rings_for
+from live.grammar import LAYOUTS, check_spec
 
 MARKER = "NOUMENON_DESIGN_REQUEST:"
-LOCAL_MODEL = "noumenon-grid-sampler"
+LOCAL_MODEL = "noumenon-shape-grammar"
 MODEL_PROVIDERS = {
     # name: (Smythe provider class, default model, API key variable)
     "anthropic": ("AnthropicMessagesProvider", "claude-fable-5-1", "ANTHROPIC_API_KEY"),
@@ -108,9 +112,16 @@ def model_provider(name: str):
     return getattr(smythe, class_name)()
 
 
-def local_provider():
-    """A Smythe provider that answers design requests by sampling the grid grammar."""
+def local_provider(recent=None):
+    """A Smythe provider that answers design requests by drawing glyphs with the shape grammar.
+
+    Each seed starts one glyph. ``recent``, the style gate's memory of recent
+    parts, lets the grammar redraw a module whose parts would repeat one of them,
+    so the glyph a seed yields also depends on what came before it.
+    """
     from smythe import CompletionResult, Provider
+
+    is_new = recent.accepts if recent is not None else None
 
     class LocalDesignProvider(Provider):
         def budget_estimate_usd(self, model):
@@ -120,7 +131,12 @@ def local_provider():
             ask = parse_request(prompt)
             if ask.get("lane") != "local":
                 raise ValueError("the local provider answers local design requests only")
-            designs = [{"seed": seed, "spec": sample_spec(seed)} for seed in range(ask["seed"], ask["seed"] + ask["count"])]
+            designs = []
+            for seed in range(ask["seed"], ask["seed"] + ask["count"]):
+                drawn = shapes.design(random.Random(seed), is_new=is_new)
+                if drawn is not None:
+                    designs.append({"seed": seed, "spec": drawn.record, "polygons": rings_for(drawn.parts),
+                                    "groups": list(drawn.groups)})
             return CompletionResult(text=json.dumps({"designs": designs}), cost_usd=0.0,
                                     prompt_tokens=0, completion_tokens=0)
 
