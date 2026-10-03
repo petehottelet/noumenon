@@ -15,7 +15,7 @@ smythe = pytest.importorskip("smythe")
 from live import feedcheck, grammar, lanes, sinks  # noqa: E402
 from live.__main__ import main  # noqa: E402
 from live.compile import compile_spec  # noqa: E402
-from live.runner import Runner, Settings  # noqa: E402
+from live.runner import Runner, Settings, session_prefix  # noqa: E402
 from live.parts import RecentParts  # noqa: E402
 from live.style import StyleGate  # noqa: E402
 
@@ -193,3 +193,37 @@ def test_the_feed_keeps_writing_when_a_saver_holds_an_old_file(tmp_path, monkeyp
     assert not list(tmp_path.glob("*.tmp"))
     with pytest.raises(ValueError):
         sinks.Feed(tmp_path, 0)
+
+
+def test_a_session_prefix_sorts_after_every_glyph_already_written(tmp_path):
+    from datetime import datetime, timezone
+
+    feed = sinks.Feed(tmp_path / "feed")
+    feed.folder.mkdir()
+    (feed.folder / "20261003T052750-000003.svg").write_text("<svg/>", encoding="utf-8")
+    (feed.folder / "notes-draft.svg").write_text("<svg/>", encoding="utf-8")
+    same_second = datetime(2026, 10, 3, 5, 27, 50, 500000, tzinfo=timezone.utc)
+    assert session_prefix([feed], now=same_second) == "20261003T052751"
+    clock_moved_back = datetime(2026, 10, 3, 5, 0, 0, tzinfo=timezone.utc)
+    assert session_prefix([feed], now=clock_moved_back) == "20261003T052751"
+    later = datetime(2026, 10, 3, 6, 0, 0, tzinfo=timezone.utc)
+    assert session_prefix([feed, sinks.Memory(), sinks.Archive(tmp_path / "none", "x")], now=later) == "20261003T060000"
+
+
+def test_sessions_started_in_the_same_second_keep_every_glyph_in_arrival_order(tmp_path, monkeypatch):
+    from datetime import datetime, timezone
+    import live.runner as runner_module
+
+    class FrozenClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 3, 5, 27, 50, tzinfo=timezone.utc)
+
+    monkeypatch.setattr(runner_module, "datetime", FrozenClock)
+    common = ["--count", "3", "--interval", "0", "--port", "0", "--seed", "21", "--no-save", "--feed", str(tmp_path / "feed")]
+    assert main(common) == 0
+    first = sorted(path.name for path in (tmp_path / "feed").glob("*.svg"))
+    assert main(common) == 0
+    names = sorted(path.name for path in (tmp_path / "feed").glob("*.svg"))
+    assert len(names) == 6 and names[:3] == first
+    assert names[3:] == ["20261003T052751-000001.svg", "20261003T052751-000002.svg", "20261003T052751-000003.svg"]
